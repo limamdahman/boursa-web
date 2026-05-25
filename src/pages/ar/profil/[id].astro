@@ -1,0 +1,131 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import VehicleCard from '@/components/VehicleCard.astro';
+import ReviewsSection from '@/components/ReviewsSection';
+import FollowButton from '@/components/FollowButton';
+import { getSellerProfile, getUserRatingSummary } from '@/lib/api';
+import { getLang, useTranslations } from '@/i18n/translations';
+
+export const prerender = false;
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+const { id } = Astro.params;
+
+if (!id) return Astro.redirect('/' + lang + '/');
+
+let seller: any = null;
+let rating: any = { count: 0, average: 0 };
+
+try {
+  const res: any = await getSellerProfile(id);
+  seller = res?.data;
+} catch (err) {
+  return Astro.redirect('/' + lang + '/');
+}
+
+try {
+  rating = await getUserRatingSummary(id);
+} catch {}
+
+const initials = (seller?.name || '?').split(' ').slice(0, 2).map((w: string) => w[0] || '').join('').toUpperCase();
+const memberSinceLabel = seller?.member_since
+  ? new Date(seller.member_since).toLocaleDateString(lang === 'ar' ? 'ar-MR' : 'fr-FR', { year: 'numeric', month: 'long' })
+  : '—';
+
+const firstVehicleId = seller?.vehicles?.[0]?.id || '';
+const phoneWhatsapp = seller?.phone_whatsapp ? seller.phone_whatsapp.replace(/\D/g, '') : null;
+const phoneCall = seller?.phone_call || null;
+const whatsappUrl = phoneWhatsapp ? 'https://wa.me/' + phoneWhatsapp : null;
+const callUrl = phoneCall ? 'tel:' + phoneCall : null;
+---
+
+<Layout title={seller?.name || (lang === 'ar' ? 'البائع' : 'Profil vendeur')}>
+  <Header />
+  <main style="background: #F8FAFC; min-height: calc(100vh - 200px);">
+    {/* Hero seller */}
+    <section style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: white; padding: 40px 0;">
+      <div style="max-width: 1400px; margin: 0 auto; padding: 0 24px;">
+        <a href={'/' + lang + '/vehicules'} style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #CBD5E1; text-decoration: none; margin-bottom: 18px;">
+          <i class={'fa-solid ' + (lang === 'ar' ? 'fa-arrow-right' : 'fa-arrow-left')} style="font-size: 11px"></i>
+          <span>{lang === 'ar' ? 'العودة إلى السيارات' : 'Retour aux véhicules'}</span>
+        </a>
+
+        <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+          <div style="width: 80px; height: 80px; background: #16A34A; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 28px; flex-shrink: 0;">
+            {initials}
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
+              <h1 style="font-size: 26px; font-weight: 800; margin: 0;">{seller.name}</h1>
+              <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.1); color: white; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 100px;">
+                <i class="fa-solid fa-user" style="font-size: 9px"></i>
+                {lang === 'ar' ? 'بائع خاص' : 'Particulier'}
+              </span>
+              <FollowButton client:load lang={lang} sellerType="user" sellerId={seller.id} />
+            </div>
+            <div style="display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: #94A3B8;">
+              <span><i class="fa-solid fa-car-side" style="margin-inline-end: 5px"></i>{seller.active_listings_count} {seller.active_listings_count > 1 ? (lang === 'ar' ? 'إعلان' : 'annonces') : (lang === 'ar' ? 'إعلان' : 'annonce')}</span>
+              <span><i class="fa-solid fa-calendar" style="margin-inline-end: 5px"></i>{lang === 'ar' ? 'منذ' : 'Depuis'} {memberSinceLabel}</span>
+              {rating.count > 0 && (
+                <span><i class="fa-solid fa-star" style="color: #F59E0B; margin-inline-end: 5px"></i>{rating.average.toFixed(1)} · {rating.count} {rating.count > 1 ? (lang === 'ar' ? 'تقييم' : 'avis') : (lang === 'ar' ? 'تقييم' : 'avis')}</span>
+              )}
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap;">
+              {whatsappUrl && (
+                  <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener"
+                  style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 22px; background: #25D366; color: white; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none;"
+                >
+                  <i class="fa-brands fa-whatsapp" style="font-size: 16px"></i>
+                  <span>WhatsApp</span>
+                </a>
+              )}
+              {callUrl && (
+                  <a
+                  href={callUrl}
+                  style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 22px; background: #16A34A; color: white; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none;"
+                >
+                  <i class="fa-solid fa-phone" style="font-size: 14px"></i>
+                  <span>{lang === 'ar' ? 'اتصل' : 'Appeler'}</span>
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* Vehicles grid */}
+    <section style="max-width: 1400px; margin: 0 auto; padding: 40px 24px;">
+      <h2 style="font-size: 18px; font-weight: 800; color: #0F172A; margin: 0 0 18px;">
+        {lang === 'ar' ? 'الإعلانات النشطة' : 'Annonces actives'} ({seller.active_listings_count})
+      </h2>
+
+      {seller.vehicles && seller.vehicles.length > 0 ? (
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
+          {seller.vehicles.map((vehicle: any) => (
+            <VehicleCard vehicle={vehicle} />
+          ))}
+        </div>
+      ) : (
+        <div style="background: white; border-radius: 12px; border: 1px solid #E2E8F0; padding: 40px; text-align: center;">
+          <i class="fa-solid fa-car-side" style="font-size: 32px; color: #CBD5E1; margin-bottom: 12px"></i>
+          <p style="font-size: 14px; color: #64748B; margin: 0;">{lang === 'ar' ? 'لا توجد إعلانات نشطة' : 'Aucune annonce active'}</p>
+        </div>
+      )}
+    </section>
+
+    {/* Reviews section */}
+    {firstVehicleId && (
+      <section style="max-width: 1400px; margin: 0 auto; padding: 0 24px 40px;">
+        <ReviewsSection client:load lang={lang} vehicleId={firstVehicleId} sellerType="user" sellerId={seller.id} />
+      </section>
+    )}
+  </main>
+  <Footer />
+</Layout>

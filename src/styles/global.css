@@ -1,0 +1,217 @@
+@import 'tailwindcss';
+
+/* ─── Boursa Design Tokens ─── */
+@theme {
+  /* Brand : Emerald */
+  --color-brand-50: #F0FDF4;
+  --color-brand-100: #DCFCE7;
+  --color-brand-200: #BBF7D0;
+  --color-brand-300: #86EFAC;
+  --color-brand-400: #4ADE80;
+  --color-brand-500: #22C55E;
+  --color-brand-600: #16A34A;
+  --color-brand-700: #15803D;
+  --color-brand-800: #166534;
+  --color-brand-900: #14532D;
+
+  /* Price : Amber doré */
+  --color-price: #D97706;
+  --color-price-deep: #B45309;
+  --color-price-bg: #FED7AA;
+
+  /* Slate (neutres) */
+  --color-bg: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #F1F5F9;
+  --color-hairline: #E2E8F0;
+  --color-hairline-strong: #CBD5E1;
+
+  /* Texte */
+  --color-text-1: #0F172A;
+  --color-text-2: #475569;
+  --color-text-3: #64748B;
+  --color-text-disabled: #94A3B8;
+
+  /* Status */
+  --color-whatsapp: #25D366;
+  --color-amber-rating: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #2563EB;
+
+  /* Fonts */
+  --font-sans: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+}
+
+/* Reset léger */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-1);
+  background: var(--color-bg);
+}
+
+/* Liens par défaut */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Boutons : reset */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Inputs : reset */
+input, select, textarea {
+  font-family: inherit;
+}
+
+/* Hover lift sur SVG catégories */
+.group:hover svg[data-lucide] {
+  transform: translateY(-2px);
+}
+
+/* ─── i18n : Arabic (Cairo headings + Tajawal body) ─── */
+html[lang="ar"],
+html[lang="ar"] body,
+.font-arabic {
+  font-family: 'Tajawal', 'Source Sans 3', system-ui, sans-serif;
+}
+
+/* Cairo pour titres, prix, boutons, navigation (impact visuel) */
+html[lang="ar"] h1,
+html[lang="ar"] h2,
+html[lang="ar"] h3,
+html[lang="ar"] h4,
+html[lang="ar"] h5,
+html[lang="ar"] h6,
+html[lang="ar"] button,
+html[lang="ar"] .btn,
+html[lang="ar"] nav a,
+html[lang="ar"] [class*="price"],
+html[lang="ar"] [class*="font-extrabold"],
+html[lang="ar"] [class*="font-bold"] {
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+  font-feature-settings: "kern";
+}
+
+/* Numbers always LTR even in RTL context */
+html[dir="rtl"] .ltr-numbers {
+  direction: ltr;
+  unicode-bidi: isolate-override;
+  text-align: start;
+}
+
+/* Le span unité (أوقية/MRU) à l'intérieur d'un .ltr-numbers doit se comporter RTL */
+html[dir="rtl"] .ltr-numbers span:not(.ltr-numbers) {
+  unicode-bidi: isolate;
+}
+
+/* SearchBox dropdown alignment in RTL */
+html[dir="rtl"] select {
+  text-align: right;
+  padding-right: 0.75rem;
+  padding-left: 2rem;
+  background-position: left 0.5rem center;
+}
+
+/* ─── i18n Arabic : letter-spacing et line-height corrects ─── */
+html[lang="ar"] h1,
+html[lang="ar"] h2,
+html[lang="ar"] h3,
+html[lang="ar"] h4,
+html[lang="ar"] h5,
+html[lang="ar"] h6 {
+  letter-spacing: 0 !important;
+  line-height: 1.4;
+  word-spacing: 0.1em;
+}
+
+html[lang="ar"] .tracking-tight,
+html[lang="ar"] .tracking-tighter,
+html[lang="ar"] [class*="tracking-"] {
+  letter-spacing: 0 !important;
+}
+
+html[lang="ar"] p,
+html[lang="ar"] li,
+html[lang="ar"] span {
+  line-height: 1.7;
+}
+
+/* Titres Hero / sections : line-height plus aéré */
+html[lang="ar"] h1 {
+  line-height: 1.5;
+  word-spacing: 0.15em;
+}
+
+/* Numbers/prix toujours LTR sans tracking */
+html[lang="ar"] .ltr-numbers {
+  letter-spacing: 0;
+  word-spacing: normal;
+}
+
+/* ─── Phase A : Fonts utilities ─── */
+.font-display {
+  font-family: 'Inter Tight', 'Source Sans 3', sans-serif;
+  letter-spacing: -0.03em;
+}
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Ping animation pour eyebrow */
+@keyframes ping {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+  70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+.ping-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22C55E;
+  animation: ping 2s infinite;
+}
+
+/* Cursor blink pour AI search typewriter */
+@keyframes cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+.ai-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 16px;
+  background: #16A34A;
+  margin-left: 2px;
+  animation: cursor-blink 1s infinite;
+  vertical-align: middle;
+}
+
+/* En arabe : Cairo pour les titres affichés en font-display */
+html[lang="ar"] .font-display {
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+}
+
+
+/* h2 sections en FR : Inter Tight (Cairo prend le relais en AR via la règle html[lang="ar"]) */
+html:not([lang="ar"]) section h2 {
+  font-family: 'Inter Tight', 'Source Sans 3', sans-serif;
+  letter-spacing: -0.03em;
+}

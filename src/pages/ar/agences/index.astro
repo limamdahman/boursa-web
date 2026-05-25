@@ -1,0 +1,76 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import AgencyCard from '@/components/AgencyCard.astro';
+import { listAgencies } from '@/lib/api';
+import { getLang, useTranslations } from '@/i18n/translations';
+
+export const prerender = false;
+
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+let agencies: any[] = [];
+let total = 0;
+
+try {
+  const result = await listAgencies({ per_page: 24 });
+  agencies = result?.data ?? [];
+  total = result?.meta?.total ?? agencies.length;
+} catch (err) {
+  console.error('Erreur chargement agences:', err);
+}
+
+const pageTitle = lang === 'ar' ? 'الوكالات' : 'Nos agences partenaires';
+const pageSubtitle = lang === 'ar' ? 'تصفح جميع الوكالات الموثوقة في موريتانيا' : 'Découvrez toutes les agences vérifiées de Boursa en Mauritanie';
+---
+
+<Layout title={pageTitle}>
+  <Header active="agences" />
+
+  <section style="background: white; border-bottom: 1px solid #E2E8F0;">
+    <div style="max-width: 1400px; margin: 0 auto; padding: 32px 24px;">
+      <h1 style="font-size: 28px; font-weight: 800; color: #0F172A; margin: 0 0 6px;">
+        {pageTitle}
+      </h1>
+      <p style="font-size: 14px; color: #475569; margin: 0;">
+        {pageSubtitle}
+      </p>
+      <div style="margin-top: 16px; display: inline-flex; align-items: center; gap: 8px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 100px; padding: 6px 14px;">
+        <i class="fa-solid fa-building" style="font-size: 12px; color: #16A34A"></i>
+        <span style="font-size: 13px; font-weight: 700; color: #15803D;">
+          <span dir="ltr">{total}</span> {lang === 'ar' ? 'وكالة' : 'agence' + (total > 1 ? 's' : '')}
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding: 32px 24px; background: #F8FAFC; min-height: 60vh;">
+    <div style="max-width: 1400px; margin: 0 auto;">
+      {agencies.length === 0 ? (
+        <div style="text-align: center; padding: 80px 20px; background: white; border-radius: 12px; border: 1px solid #E2E8F0;">
+          <i class="fa-solid fa-building-circle-exclamation" style="font-size: 48px; color: #CBD5E1; margin-bottom: 16px"></i>
+          <h2 style="font-size: 18px; font-weight: 800; color: #0F172A; margin: 0">
+            {lang === 'ar' ? 'لا توجد وكالات حاليا' : 'Aucune agence pour le moment'}
+          </h2>
+        </div>
+      ) : (
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;" class="agencies-grid">
+          {agencies.map((a) => <AgencyCard agency={a} />)}
+        </div>
+      )}
+    </div>
+  </section>
+
+  <Footer />
+</Layout>
+
+<style>
+  @media (max-width: 1024px) {
+    .agencies-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  }
+  @media (max-width: 640px) {
+    .agencies-grid { grid-template-columns: 1fr !important; }
+  }
+</style>

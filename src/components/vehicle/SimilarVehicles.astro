@@ -1,0 +1,48 @@
+---
+import { getLang, useTranslations } from '@/i18n/translations';
+import { getSimilarVehicles, formatPrice, formatKm } from '@/lib/api';
+import VehicleCard from '@/components/VehicleCard.astro';
+
+interface Props {
+  vehicleId: string;
+}
+
+const { vehicleId } = Astro.props;
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+let similar: any[] = [];
+try {
+  const res: any = await getSimilarVehicles(vehicleId);
+  similar = res?.data || [];
+} catch {
+  similar = [];
+}
+---
+
+{similar.length > 0 && (
+  <section style="background: white; padding: 40px 0;">
+    <div style="max-width: 1400px; margin: 0 auto; padding: 0 24px;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h2 style="font-size: 22px; font-weight: 800; color: #0F172A; margin: 0 0 4px;">
+            {lang === 'ar' ? 'سيارات مشابهة' : 'Véhicules similaires'}
+          </h2>
+          <p style="font-size: 13px; color: #64748B; margin: 0;">
+            {lang === 'ar' ? 'بناء على هذه الإعلان' : 'En lien avec cette annonce'}
+          </p>
+        </div>
+        <a href={'/' + lang + '/vehicules'} style="font-size: 13px; color: #16A34A; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+          {lang === 'ar' ? 'عرض الكل' : 'Voir tout'}
+          <i class={'fa-solid ' + (lang === 'ar' ? 'fa-arrow-left' : 'fa-arrow-right')} style="font-size: 11px"></i>
+        </a>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
+        {similar.slice(0, 4).map((vehicle) => (
+          <VehicleCard vehicle={vehicle} />
+        ))}
+      </div>
+    </div>
+  </section>
+)}

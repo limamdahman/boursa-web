@@ -1,0 +1,69 @@
+---
+import type { Vehicle } from '@/lib/types';
+import { formatPrice, formatKm } from '@/lib/api';
+import FavoriteHeart from './FavoriteHeart';
+import { getLang, useTranslations } from '@/i18n/translations';
+
+interface Props {
+  vehicle: Vehicle;
+  featured?: boolean;
+}
+
+const { vehicle, featured = false } = Astro.props;
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const photoCount = vehicle.media?.length ?? 0;
+const cityName = lang === 'ar' && vehicle.city?.name_ar ? vehicle.city.name_ar : vehicle.city?.name_fr;
+const fuelLabel = t(`fuel.${vehicle.fuel}`);
+const detailUrl = '/' + lang + '/vehicules/' + vehicle.id;
+const altText = vehicle.brand.name + ' ' + vehicle.model.name;
+---
+
+<div class="group relative block bg-white rounded-xl overflow-hidden transition-all hover:shadow-lg cursor-pointer" class:list={[featured ? 'border-2 border-[var(--color-brand-600)] shadow-md' : 'border border-[var(--color-hairline)] hover:border-[var(--color-brand-300)]']} data-href={detailUrl} onclick="if(!event.target.closest('[data-no-nav]')) { window.location.href=this.dataset.href; }">
+  <div data-no-nav="true" style="position: absolute; top: 10px; inset-inline-end: 10px; z-index: 10;">
+    <FavoriteHeart client:load vehicleId={vehicle.id} lang={lang} />
+  </div>
+
+  <div class="relative aspect-[4/3] bg-[var(--color-surface-muted)] overflow-hidden">
+    {vehicle.cover_image ? (
+      <img src={vehicle.cover_image} alt={altText} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+    ) : (
+      <div class="w-full h-full flex flex-col items-center justify-center text-[var(--color-text-disabled)]">
+        <i class="fa-solid fa-car text-4xl mb-2"></i>
+        <span class="text-xs">{t('vehicle.noPhoto')}</span>
+      </div>
+    )}
+    {featured && (
+      <span class="absolute top-2 start-2 bg-[var(--color-brand-600)] text-white text-[10px] font-extrabold px-2 py-1 rounded tracking-wider">
+        {t('featured.vedette')}
+      </span>
+    )}
+    {photoCount > 0 && (
+      <span class="absolute bottom-2 end-2 bg-black/60 text-white text-[10px] font-semibold px-2 py-0.5 rounded flex items-center gap-1">
+        <i class="fa-solid fa-image text-[9px]"></i>
+        1/{photoCount}
+      </span>
+    )}
+  </div>
+  <div class="p-3">
+    <h3 class="text-[13px] font-bold text-[var(--color-text-1)] truncate leading-tight">
+      {vehicle.brand.name} {vehicle.model.name}
+    </h3>
+    <p class="text-[11px] text-[var(--color-text-2)] mt-0.5 mb-2 ltr-numbers">
+      {vehicle.year} · {formatKm(vehicle.mileage_km)} {t('unit.km')} · {fuelLabel}
+    </p>
+    <p class="text-base font-extrabold text-[var(--color-price)] leading-none ltr-numbers">
+      {formatPrice(vehicle.price_mru)}
+      <span class="text-[11px] font-bold">{t('unit.currency')}</span>
+    </p>
+    <div class="mt-2 flex items-center justify-between">
+      {cityName && (
+        <span class="text-[10px] text-[var(--color-text-3)] flex items-center gap-1">
+          <i class="fa-solid fa-location-dot text-[9px]"></i>
+          {cityName}
+        </span>
+      )}
+    </div>
+  </div>
+</div>

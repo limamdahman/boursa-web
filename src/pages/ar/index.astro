@@ -1,0 +1,46 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import Hero from '@/components/Hero.astro';
+import Categories from '@/components/Categories.astro';
+import FeaturedVehicles from '@/components/FeaturedVehicles.astro';
+import BrandsGrid from '@/components/BrandsGrid.astro';
+import LifestyleGrid from '@/components/LifestyleGrid.astro';
+import AgencyCTA from '@/components/AgencyCTA.astro';
+import TrustBar from '@/components/TrustBar.astro';
+import Footer from '@/components/Footer.astro';
+
+import { listBrands, listCities, getFeaturedVehicles, listVehicles } from '@/lib/api';
+
+export const prerender = false;
+
+let brands: any[] = [];
+let cities: any[] = [];
+let featuredVehicles: any[] = [];
+let total = 0;
+
+try {
+  [brands, cities, featuredVehicles] = await Promise.all([
+    listBrands().catch(() => []),
+    listCities().catch(() => []),
+    getFeaturedVehicles(5).catch(() => []),
+  ]);
+
+  const listing = await listVehicles({ per_page: 5 }).catch(() => null);
+  total = listing?.meta?.total ?? featuredVehicles.length;
+} catch (err) {
+  console.error('Erreur chargement:', err);
+}
+---
+
+<Layout>
+  <Header active="home" />
+  <Hero brands={brands} cities={cities} totalVehicles={total} />
+  <Categories />
+  <FeaturedVehicles vehicles={featuredVehicles} total={total} />
+  <LifestyleGrid />
+  <BrandsGrid />
+  <AgencyCTA />
+  <TrustBar />
+  <Footer />
+</Layout>

@@ -1,0 +1,89 @@
+---
+import { listBrands } from '@/lib/api';
+import { getLang, useTranslations } from '@/i18n/translations';
+
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+// Mapping marque slug → slug carlogos.org (uniquement les exceptions)
+const SLUG_OVERRIDES: Record<string, string> = {
+  mercedes: 'mercedes-benz',
+  landrover: 'land-rover',
+  vw: 'volkswagen',
+  citroen: 'citroen',
+  'citroën': 'citroen',
+};
+
+let brands: any[] = [];
+try {
+  brands = await listBrands();
+} catch (e) {
+  console.error('Erreur chargement marques:', e);
+}
+
+function getLogoUrl(slug: string): string {
+  const cleanSlug = (SLUG_OVERRIDES[slug.toLowerCase()] ?? slug.toLowerCase()).replace(/\s+/g, '-');
+  return `https://www.carlogos.org/car-logos/${cleanSlug}-logo.png`;
+}
+
+const arrowIcon = lang === 'ar' ? 'left' : 'right';
+---
+
+<section style="padding: 60px 24px; background: #FFFFFF;">
+  <div style="max-width: 1280px; margin: 0 auto;">
+
+    <div style="display: flex; align-items: flex-end; margin-bottom: 28px;">
+      <div>
+        <h2 style="font-size: 28px; font-weight: 800; letter-spacing: -0.03em; color: #0F172A; margin: 0 0 4px;">
+          {t('brands.title')}
+        </h2>
+        <p style="font-size: 14px; color: #475569; margin: 0;">
+          {t('brands.subtitle')}
+        </p>
+      </div>
+      <a href={"/" + lang + "/vehicules"} style="margin-inline-start: auto; font-size: 13px; font-weight: 700; color: #16A34A; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+        {t('brands.viewAll', { count: brands.length })}
+        <i class={"fa-solid fa-arrow-" + arrowIcon} style="font-size: 11px"></i>
+      </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px;" class="brands-grid-responsive">
+      {brands.map((brand) => {
+        const logoUrl = getLogoUrl(brand.slug);
+        const initial = brand.name.charAt(0).toUpperCase();
+        const cardStyle = "background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 18px 12px 16px; text-align: center; text-decoration: none; color: #0F172A; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: all 0.18s; cursor: pointer;";
+        const circleStyle = "width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; background: #F8FAFC; border-radius: 50%; overflow: hidden; position: relative;";
+        const imgStyle = "width: 48px; height: 48px; object-fit: contain;";
+        const fallbackStyle = "display: none; align-items: center; justify-content: center; width: 100%; height: 100%; font-family: 'Inter Tight', sans-serif; font-weight: 800; font-size: 24px; color: #475569;";
+        const nameStyle = "font-size: 13px; font-weight: 700; color: #0F172A; line-height: 1.2;";
+        return (
+          <a href={"/" + lang + "/vehicules?brand_id=" + brand.id} class="brand-card" style={cardStyle}>
+            <div style={circleStyle}>
+              <img src={logoUrl} alt={brand.name} style={imgStyle} onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <span style={fallbackStyle}>{initial}</span>
+            </div>
+            <div style={nameStyle}>{brand.name}</div>
+          </a>
+        );
+      })}
+    </div>
+  </div>
+</section>
+
+<style>
+  .brand-card:hover {
+    border-color: #16A34A !important;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.12) !important;
+    transform: translateY(-2px) !important;
+  }
+  @media (max-width: 1024px) {
+    .brands-grid-responsive {
+      grid-template-columns: repeat(4, 1fr) !important;
+    }
+  }
+  @media (max-width: 640px) {
+    .brands-grid-responsive {
+      grid-template-columns: repeat(3, 1fr) !important;
+    }
+  }
+</style>

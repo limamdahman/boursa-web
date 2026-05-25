@@ -1,0 +1,18 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import ProfileForm from '@/components/ProfileForm';
+import { getLang } from '@/i18n/translations';
+
+export const prerender = false;
+const lang = getLang(Astro.currentLocale);
+---
+
+<Layout title={lang === 'ar' ? 'حسابي' : 'Mon compte'}>
+  <Header />
+  <main style="min-height: calc(100vh - 200px); background: #F8FAFC; padding: 40px 0;">
+    <ProfileForm client:load lang={lang} />
+  </main>
+  <Footer />
+</Layout>

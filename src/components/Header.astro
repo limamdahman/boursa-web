@@ -1,0 +1,70 @@
+---
+import LanguageSwitcher from './LanguageSwitcher';
+import NotificationBell from './NotificationBell';
+import MobileMenu from './MobileMenu';
+import UserMenu from './UserMenu';
+import CampaignBanner from './CampaignBanner';
+import { getLang, useTranslations } from '@/i18n/translations';
+
+interface Props {
+  active?: 'home' | 'vehicules' | 'agences' | 'magazine';
+}
+
+const { active = 'home' } = Astro.props;
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+const currentPath = Astro.url.pathname;
+
+const homeUrl = '/' + lang + '/';
+const loginUrl = '/' + lang + '/connexion';
+const publishUrl = '/' + lang + '/publier';
+
+const navItems = [
+  { key: 'vehicules', label: t('nav.buy'), href: '/' + lang + '/vehicules' },
+  { key: 'publier', label: t('nav.sell'), href: '/' + lang + '/publier' },
+  { key: 'agences', label: t('nav.agencies'), href: '/' + lang + '/agences' },
+  { key: 'magazine', label: t('nav.magazine'), href: '/' + lang + '/magazine' },
+];
+
+const ctaItems = [
+  { label: t('nav.login'), href: loginUrl },
+  { label: t('nav.publish'), href: publishUrl, primary: true },
+];
+---
+
+<CampaignBanner client:load lang={lang} />
+
+<header class="bg-white border-b border-[var(--color-hairline)] sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center h-16 gap-3">
+      <a href={homeUrl} class="flex items-center gap-2 flex-shrink-0">
+        <img src="/images/boursa-mark.png" alt="" class="h-7 w-auto" />
+        <span class="text-xl sm:text-2xl font-extrabold tracking-[-0.04em] leading-none text-[var(--color-text-1)]">
+          boursa<span class="text-[var(--color-brand-600)]">.</span>
+        </span>
+      </a>
+
+      <nav class="hidden md:flex gap-7 ms-10">
+        {navItems.map((item) => (
+          <a href={item.href} class={active === item.key ? 'text-sm font-semibold text-[var(--color-text-1)]' : 'text-sm font-semibold text-[var(--color-text-2)] hover:text-[var(--color-text-1)] transition-colors'}>
+            {item.label}
+          </a>
+        ))}
+      </nav>
+
+      <div class="ms-auto flex items-center gap-2">
+        <LanguageSwitcher client:load currentLang={lang} currentPath={currentPath} />
+
+        <NotificationBell client:load lang={lang} />
+        <UserMenu client:load lang={lang} />
+
+        <a href={publishUrl} class="hidden md:inline-flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-white bg-[var(--color-brand-600)] hover:bg-[var(--color-brand-700)] rounded-md transition-colors">
+          <i class="fa-solid fa-plus text-xs"></i>
+          <span>{t('nav.publish')}</span>
+        </a>
+
+        <MobileMenu client:load lang={lang} active={active} navItems={navItems} ctaItems={ctaItems} loginLabel={t('nav.login')} />
+      </div>
+    </div>
+  </div>
+</header>

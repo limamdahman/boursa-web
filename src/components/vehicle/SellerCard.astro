@@ -1,0 +1,198 @@
+---
+import { useTranslations, getLang } from '@/i18n/translations';
+import LeafletAgencyMap from '@/components/LeafletAgencyMap';
+import FollowButton from '@/components/FollowButton';
+
+interface Props {
+  vehicle: any;
+}
+
+const { vehicle } = Astro.props;
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const seller = vehicle.agency || vehicle.user || null;
+if (!seller) return null;
+
+const isAgency = !!vehicle.agency;
+const sellerName = seller.name || '';
+const initials = sellerName.split(' ').slice(0, 2).map((w: string) => w[0] || '').join('').toUpperCase();
+
+const cityName = isAgency
+  ? (lang === 'ar' && seller.city?.name_ar ? seller.city.name_ar : seller.city?.name_fr)
+  : (lang === 'ar' && vehicle.city?.name_ar ? vehicle.city.name_ar : vehicle.city?.name_fr);
+
+const tierLabel: Record<string, string> = { 'free': 'Gratuit', 'premium': 'Premium', 'business': 'Business' };
+
+const mapSrc = isAgency && seller.lat && seller.lng
+  ? 'https://maps.google.com/maps?q=' + seller.lat + ',' + seller.lng + '&z=15&hl=' + lang + '&output=embed'
+  : null;
+const mapLink = isAgency && seller.lat && seller.lng
+  ? 'https://www.google.com/maps?q=' + seller.lat + ',' + seller.lng
+  : null;
+
+const phoneWhatsapp = seller.phone_whatsapp ? seller.phone_whatsapp.replace(/\D/g, '') : null;
+const phoneCall = seller.phone_call || null;
+const whatsappMessage = encodeURIComponent(
+  t('vehicle.whatsappMessage', {
+    brand: vehicle.brand?.name || '',
+    model: vehicle.model?.name || vehicle.vehicleModel?.name || '',
+    year: String(vehicle.year || ''),
+  })
+);
+const whatsappUrl = phoneWhatsapp ? 'https://wa.me/' + phoneWhatsapp + '?text=' + whatsappMessage : null;
+const callUrl = phoneCall ? 'tel:' + phoneCall : null;
+
+const agencyProfileUrl = isAgency && seller.slug ? '/' + lang + '/agences/' + seller.slug : null;
+const userProfileUrl = !isAgency && seller.id ? '/' + lang + '/profil/' + seller.id : null;
+const sellerProfileUrl = agencyProfileUrl || userProfileUrl;
+
+const headerLabel = isAgency
+  ? (t('agency.about') || "À propos de l'agence")
+  : (lang === 'ar' ? 'عن البائع' : 'À propos du vendeur');
+
+const typeLabel = isAgency
+  ? (tierLabel[seller.subscription_tier] || seller.subscription_tier)
+  : (lang === 'ar' ? 'بائع خاص' : 'Particulier');
+
+const activeListingsLabel = t('agency.activeListings') || 'annonces actives';
+---
+
+<div style="background: white; border-radius: 12px; border: 1px solid #E2E8F0; padding: 24px;">
+  <h2 style="font-size: 16px; font-weight: 800; color: #0F172A; margin: 0 0 18px;">
+    {headerLabel}
+  </h2>
+
+  <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px;">
+    <div style="width: 56px; height: 56px; background: #0F172A; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 18px; flex-shrink: 0; overflow: hidden;">
+      {isAgency && seller.logo_url ? (
+        <img src={seller.logo_url} alt={sellerName} style="width: 100%; height: 100%; object-fit: cover;" />
+      ) : (
+        <span>{initials || '?'}</span>
+      )}
+    </div>
+    <div style="flex: 1; min-width: 0;">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 4px;">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; min-width: 0;">
+          {sellerProfileUrl ? (
+            <a href={sellerProfileUrl} style="font-size: 16px; font-weight: 800; color: #0F172A; margin: 0; text-decoration: none;">{sellerName}</a>
+          ) : (
+            <h3 style="font-size: 16px; font-weight: 800; color: #0F172A; margin: 0;">{sellerName}</h3>
+          )}
+          {isAgency && seller.is_verified && (
+            <span style="display: inline-flex; align-items: center; flex-shrink: 0;" title={t('agency.verified') || 'Vérifiée'}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#1D9BF0" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"/>
+              </svg>
+            </span>
+          )}
+          {!isAgency && (
+            <span style="display: inline-flex; align-items: center; gap: 3px; background: #0F172A; color: white; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 100px;">
+              <i class="fa-solid fa-user" style="font-size: 8px"></i>
+              {lang === 'ar' ? 'خاص' : 'Particulier'}
+            </span>
+          )}
+        </div>
+        {(isAgency || vehicle.user?.id) && (
+          <div style="flex-shrink: 0;">
+            <FollowButton
+              client:load
+              lang={lang}
+              sellerType={isAgency ? 'agency' : 'user'}
+              sellerId={isAgency ? seller.id : vehicle.user.id}
+            />
+          </div>
+        )}
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #64748B; flex-wrap: wrap;">
+        <span style="font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em;">
+          {typeLabel}
+        </span>
+        {isAgency && (
+          <>
+            <span>•</span>
+            <span>{seller.vehicles_count} {activeListingsLabel}</span>
+          </>
+        )}
+      </div>
+    </div>
+  </div>
+
+  {isAgency && seller.description && (
+    <p style="font-size: 13px; color: #475569; line-height: 1.6; margin: 0 0 16px;">
+      {seller.description}
+    </p>
+  )}
+
+  <div style="display: grid; gap: 8px; padding-top: 16px; border-top: 1px solid #E2E8F0;">
+    {isAgency && seller.address && (
+      <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569;">
+        <i class="fa-solid fa-location-dot" style="font-size: 13px; color: #0F172A; width: 16px; margin-top: 2px"></i>
+        <span>{seller.address}{cityName ? ', ' + cityName : ''}</span>
+      </div>
+    )}
+    {!isAgency && cityName && (
+      <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #475569;">
+        <i class="fa-solid fa-location-dot" style="font-size: 13px; color: #0F172A; width: 16px"></i>
+        <span>{cityName}</span>
+      </div>
+    )}
+    {isAgency && seller.email && (
+      <a href={'mailto:' + seller.email} style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #475569; text-decoration: none;">
+        <i class="fa-solid fa-envelope" style="font-size: 13px; color: #0F172A; width: 16px"></i>
+        <span>{seller.email}</span>
+      </a>
+    )}
+    {isAgency && seller.website && (
+      <a href={seller.website} target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #0F172A; text-decoration: none; font-weight: 600;">
+        <i class="fa-solid fa-globe" style="font-size: 13px; color: #0F172A; width: 16px"></i>
+        <span>{seller.website.replace(/^https?:\/\//, '')}</span>
+      </a>
+    )}
+  </div>
+
+  <div style="display: grid; gap: 8px; margin-top: 18px; padding-top: 18px; border-top: 1px solid #E2E8F0;">
+    {whatsappUrl && (
+      <a href={whatsappUrl} target="_blank" rel="noopener" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 44px; background: #16A34A; color: white; border-radius: 8px; font-size: 14px; font-weight: 700; text-decoration: none;">
+        <i class="fa-brands fa-whatsapp" style="font-size: 16px"></i>
+        <span>WhatsApp</span>
+      </a>
+    )}
+    {callUrl && (
+      <a href={callUrl} style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 44px; background: #0F172A; color: white; border-radius: 8px; font-size: 14px; font-weight: 700; text-decoration: none;">
+        <i class="fa-solid fa-phone" style="font-size: 14px"></i>
+        <span>{t('vehicle.callSeller') || 'Appeler'}</span>
+      </a>
+    )}
+  </div>
+
+  {isAgency && seller.lat && seller.lng && (
+    <div style="margin-top: 18px; padding-top: 18px; border-top: 1px solid #E2E8F0;">
+      <h3 style="font-size: 13px; font-weight: 800; color: #0F172A; margin: 0 0 10px; display: flex; align-items: center; gap: 6px;">
+        <i class="fa-solid fa-map-location-dot" style="font-size: 12px; color: #0F172A"></i>
+        {t('agency.location') || 'Localisation'}
+      </h3>
+      <LeafletAgencyMap
+        client:visible
+        lat={seller.lat}
+        lng={seller.lng}
+        agencyName={sellerName}
+        address={seller.address}
+        city={cityName}
+        lang={lang}
+        height={280}
+      />
+    </div>
+  )}
+
+  {agencyProfileUrl && (
+    <a href={agencyProfileUrl} style="display: block; text-align: center; margin-top: 14px; font-size: 12px; color: #475569; text-decoration: none; font-weight: 600;">
+      {t('agency.viewProfile') || 'Voir le profil agence'} →
+    </a>
+  )}
+  {!isAgency && vehicle.user?.id && (
+    <a href={'/' + lang + '/profil/' + vehicle.user.id} style="display: block; text-align: center; margin-top: 14px; font-size: 12px; color: #475569; text-decoration: none; font-weight: 600;">
+      {lang === 'ar' ? '← عرض ملف البائع' : 'Voir le profil du vendeur →'}
+    </a>
+  )}
+  </div>

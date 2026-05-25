@@ -1,0 +1,207 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import VehicleGallery from '@/components/VehicleGallery';
+import SpecsGrid from '@/components/vehicle/SpecsGrid.astro';
+import PriceRatingBadge from '@/components/PriceRatingBadge';
+import DescriptionBlock from '@/components/vehicle/DescriptionBlock.astro';
+import AgencyCard from '@/components/vehicle/AgencyCard.astro';
+import SellerCard from '@/components/vehicle/SellerCard.astro';
+import AllPhotosGrid from '@/components/vehicle/AllPhotosGrid.astro';
+import OtherAgencyVehicles from '@/components/vehicle/OtherAgencyVehicles.astro';
+import SimilarVehicles from '@/components/vehicle/SimilarVehicles.astro';
+import ReviewsSection from '@/components/ReviewsSection';
+import ShareButton from '@/components/ShareButton';
+import FollowButton from '@/components/FollowButton';
+import { getVehicle, formatPrice, formatKm } from '@/lib/api';
+import { getLang, useTranslations } from '@/i18n/translations';
+
+export const prerender = false;
+
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect(`/${lang}/vehicules`);
+
+let vehicle;
+try {
+  vehicle = await getVehicle(id);
+} catch (err) {
+  return Astro.redirect(`/${lang}/vehicules`);
+}
+
+const cityName = lang === 'ar' && vehicle.city?.name_ar ? vehicle.city.name_ar : vehicle.city?.name_fr;
+
+const facts: [string, any][] = [
+  [t('vehicle.year'), vehicle.year],
+  [t('vehicle.fuel'), t(`fuel.${vehicle.fuel}`)],
+  [t('vehicle.mileage'), formatKm(vehicle.mileage_km) + ' ' + t('unit.km')],
+  [t('vehicle.transmission'), t(`transmission.${vehicle.transmission}`)],
+  [t('vehicle.bodyType'), t(`bodyType.${vehicle.body_type}`)],
+];
+if (cityName) facts.push([t('vehicle.city'), cityName]);
+---
+
+<Layout title={`${vehicle.brand.name} ${vehicle.model.name} ${vehicle.year}`}>
+  <Header active="vehicules" />
+
+  {vehicle.agency?.banner_url && (
+    <section style="position: relative; height: 200px; overflow: hidden; background: #0F172A;">
+      <img src={vehicle.agency.banner_url} alt={vehicle.agency.name} style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+      <div style="position: absolute; inset: 0; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.5) 100%);"></div>
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; max-width: 80rem; margin: 0 auto; padding: 0 24px 16px; display: flex; align-items: flex-end; gap: 16px;">
+        {vehicle.agency.logo_url && (
+          <div style="width: 72px; height: 72px; border: 3px solid #16A34A; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.2); flex-shrink: 0;">
+            <img src={vehicle.agency.logo_url} alt={vehicle.agency.name} style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+          </div>
+        )}
+        <div style="flex: 1; min-width: 0; padding-bottom: 4px;">
+          <p style="margin: 0; color: rgba(255,255,255,0.85); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-family: 'JetBrains Mono', monospace;">
+            { lang === 'ar' ? 'إعلان من' : 'Annonce de' }
+          </p>
+          <a href={'/' + lang + '/agences/' + vehicle.agency.slug} style="color: white; font-size: 18px; font-weight: 800; text-decoration: none; display: inline-block; margin-top: 2px;">
+            {vehicle.agency.name}
+          </a>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <div class="max-w-5xl mx-auto px-6 lg:px-8 py-8">
+    <a href={`/${lang}/vehicules`} class="text-sm text-[var(--color-text-2)] hover:text-[var(--color-text-1)] flex items-center gap-2 mb-4">
+      <i class={`fa-solid fa-arrow-${lang === 'ar' ? 'right' : 'left'} text-xs`}></i> {t('vehicle.backToResults')}
+    </a>
+
+    <div class="grid lg:grid-cols-[1.5fr_1fr] gap-8">
+      <div>
+        <div class="mb-4">
+          <VehicleGallery client:load media={vehicle.media ?? []} fallbackImage={vehicle.cover_image} lang={lang} />
+        </div>
+
+        <SpecsGrid vehicle={vehicle} />
+
+        <div style="margin-top: 16px;">
+          <DescriptionBlock vehicle={vehicle} />
+        </div>
+
+        <div style="margin-top: 16px;">
+          <AllPhotosGrid media={vehicle.media ?? []} />
+        </div>
+
+        {(vehicle.agency || vehicle.user) && (
+          <div style="margin-top: 16px; display: grid; gap: 16px;">
+            <SellerCard vehicle={vehicle} />
+            <ReviewsSection
+              client:load
+              lang={lang}
+              vehicleId={vehicle.id}
+              sellerType={vehicle.agency ? 'agency' : 'user'}
+              sellerId={vehicle.agency ? vehicle.agency.id : vehicle.user.id}
+            />
+          </div>
+        )}
+
+        {vehicle.agency && (
+          <div style="margin-top: 16px;">
+            <OtherAgencyVehicles agencyId={vehicle.agency.id} agencyName={vehicle.agency.name} excludeId={vehicle.id} />
+          </div>
+        )}
+      </div>
+
+      <div>
+        <div class="bg-white rounded-xl border border-[var(--color-hairline)] p-6 sticky top-20">
+          <h1 class="text-xl font-extrabold text-[var(--color-text-1)] leading-tight">
+            {vehicle.brand.name} {vehicle.model.name}
+          </h1>
+          <p class="text-xs text-[var(--color-text-2)] mt-1 mb-4 ltr-numbers">
+            {t(`bodyType.${vehicle.body_type}`)} · {vehicle.year} · {formatKm(vehicle.mileage_km)} {t('unit.km')}
+          </p>
+
+          <div class="mb-6">
+            <div class="flex items-baseline gap-2 ltr-numbers">
+              <span class="text-3xl font-extrabold text-[var(--color-price)] leading-none">
+                {formatPrice(vehicle.price_mru)}
+              </span>
+              <span class="text-base font-bold text-[var(--color-price)]">{t('unit.currency')}</span>
+            </div>
+            <div class="mt-3 flex" dir="ltr" style="justify-content: flex-start;">
+              {vehicle.price_rating && (
+                <PriceRatingBadge
+                  client:load
+                  rating={vehicle.price_rating}
+                  label={lang === 'ar' ? vehicle.price_rating_label_ar : vehicle.price_rating_label}
+                  color={vehicle.price_rating_color}
+                  description={lang === 'ar' ? vehicle.price_rating_description_ar : vehicle.price_rating_description}
+                  score={vehicle.price_score}
+                  price={vehicle.price_mru}
+                  benchmark={vehicle.price_benchmark}
+                  lang={lang}
+                />
+              )}
+            </div>
+          </div>
+
+          {vehicle.agency && (
+            <div class="border-t border-[var(--color-hairline)] pt-4 mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-[var(--color-text-1)] text-white rounded-lg flex items-center justify-center font-extrabold text-sm">
+                  {vehicle.agency.name.split(' ').slice(0, 2).map((s: string) => s[0]).join('').toUpperCase()}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <p class="text-sm font-bold text-[var(--color-text-1)] truncate">{vehicle.agency.name}</p>
+                    <span class="inline-flex items-center justify-center flex-shrink-0" title={t('vehicle.verified')} aria-label={t('vehicle.verified')}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="#16A34A" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"/>
+                      </svg>
+                    </span>
+                  </div>
+                  <p class="text-[11px] text-[var(--color-text-2)] mt-0.5">
+                    <i class="fa-solid fa-star text-[var(--color-amber-rating)] text-[10px]"></i>
+                    4.8 · {t('vehicle.verifiedAgency')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div class="space-y-2">
+            {(vehicle.agency?.phone_whatsapp || vehicle.user?.phone_whatsapp) && (
+                <a
+                href={`https://wa.me/${(vehicle.agency?.phone_whatsapp || vehicle.user?.phone_whatsapp || '').replace(/\D/g, '')}?text=${encodeURIComponent(t('vehicle.whatsappMessage', { brand: vehicle.brand.name, model: vehicle.model.name, year: vehicle.year }))}`}
+                target="_blank"
+                rel="noopener"
+                class="w-full bg-[var(--color-whatsapp)] hover:opacity-90 text-white font-bold text-sm py-3 rounded-md flex items-center justify-center gap-2 transition-opacity"
+              >
+                <i class="fa-brands fa-whatsapp"></i>
+                {t('vehicle.whatsapp')}
+              </a>
+            )}
+            {(vehicle.agency?.phone_call || vehicle.user?.phone_call) && (
+                <a
+                href={`tel:${vehicle.agency?.phone_call || vehicle.user?.phone_call}`}
+                class="w-full bg-[var(--color-brand-600)] hover:bg-[var(--color-brand-700)] text-white font-bold text-sm py-3 rounded-md flex items-center justify-center gap-2 transition-colors"
+              >
+                <i class="fa-solid fa-phone"></i>
+                {t('vehicle.call')}
+              </a>
+            )}
+          </div>
+
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #F1F5F9; display: grid; gap: 8px;">
+            <ShareButton
+              client:load
+              lang={lang}
+              title={vehicle.brand.name + ' ' + (vehicle.model?.name || vehicle.vehicleModel?.name || '') + ' ' + vehicle.year}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <SimilarVehicles vehicleId={vehicle.id} />
+  <Footer />
+</Layout>

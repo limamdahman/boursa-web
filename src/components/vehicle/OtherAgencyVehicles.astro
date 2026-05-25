@@ -1,0 +1,49 @@
+---
+import VehicleCard from '@/components/VehicleCard.astro';
+import { listVehicles } from '@/lib/api';
+import { useTranslations, getLang } from '@/i18n/translations';
+
+interface Props {
+  agencyId: string;
+  agencyName: string;
+  excludeId: string;
+}
+
+const { agencyId, agencyName, excludeId } = Astro.props;
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+let vehicles: any[] = [];
+let total = 0;
+try {
+  const result = await listVehicles({ agency_id: agencyId, exclude: excludeId, per_page: 8 });
+  vehicles = (result?.data ?? []).slice(0, 8);
+  total = result?.meta?.total ?? 0;
+} catch (e) {
+  console.error('Erreur chargement autres véhicules agence:', e);
+}
+
+if (vehicles.length === 0) return null;
+---
+
+<div style="background: white; border-radius: 12px; border: 1px solid #E2E8F0; padding: 24px;">
+  <div style="display: flex; align-items: flex-end; margin-bottom: 18px;">
+    <div>
+      <h2 style="font-size: 16px; font-weight: 800; color: #0F172A; margin: 0 0 4px;">
+        {t('vehicle.otherFromAgency') || "Autres véhicules de cette agence"}
+      </h2>
+      <p style="font-size: 12px; color: #64748B; margin: 0;">
+        {agencyName} · {total} {t('agency.activeListings') || 'annonces actives'}
+      </p>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;" class="other-vehicles-grid">
+    {vehicles.map((v) => <VehicleCard vehicle={v} />)}
+  </div>
+</div>
+
+<style>
+  @media (max-width: 1024px) { .other-vehicles-grid { grid-template-columns: repeat(3, 1fr) !important; } }
+  @media (max-width: 768px) { .other-vehicles-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+  @media (max-width: 480px) { .other-vehicles-grid { grid-template-columns: 1fr !important; } }
+</style>

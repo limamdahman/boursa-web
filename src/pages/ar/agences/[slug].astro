@@ -1,0 +1,238 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import VehicleCard from '@/components/VehicleCard.astro';
+import LeafletAgencyMap from '@/components/LeafletAgencyMap';
+import ReviewsSection from '@/components/ReviewsSection';
+import FollowButton from '@/components/FollowButton';
+import { getAgency, listVehicles } from '@/lib/api';
+import { getLang, useTranslations } from '@/i18n/translations';
+
+export const prerender = false;
+
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const { slug } = Astro.params;
+if (!slug) return Astro.redirect('/' + lang + '/agences');
+
+let agency: any = null;
+let vehicles: any[] = [];
+
+try {
+  agency = await getAgency(slug);
+  if (agency?.id) {
+    const listing = await listVehicles({ agency_id: agency.id, per_page: 24 });
+    vehicles = listing?.data ?? [];
+  }
+} catch (err) {
+  console.error('Erreur chargement agence:', err);
+  return Astro.redirect('/' + lang + '/agences');
+}
+
+if (!agency) return Astro.redirect('/' + lang + '/agences');
+
+const cityName = lang === 'ar' && agency.city?.name_ar ? agency.city.name_ar : agency.city?.name_fr;
+const tierLabels: Record<string, string> = { free: lang === 'ar' ? 'مجاني' : 'Gratuit', premium: 'Premium', business: 'Business' };
+const initials = agency.name.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
+const backUrl = '/' + lang + '/agences';
+
+const mapSrc = agency.lat && agency.lng
+  ? 'https://maps.google.com/maps?q=' + agency.lat + ',' + agency.lng + '&z=15&hl=' + lang + '&output=embed'
+  : null;
+const mapLink = agency.lat && agency.lng
+  ? 'https://www.google.com/maps?q=' + agency.lat + ',' + agency.lng
+  : null;
+
+const memberSince = agency.created_at ? new Date(agency.created_at).getFullYear() : null;
+---
+
+<Layout title={agency.name}>
+  <Header active="agences" />
+
+  {agency.banner_url && (
+    <section style="position: relative; height: 240px; overflow: hidden;">
+      <img src={agency.banner_url} alt={agency.name} style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+      <div style="position: absolute; inset: 0; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.4) 100%);"></div>
+    </section>
+  )}
+
+  <section style="background: white; border-bottom: 1px solid #E2E8F0;">
+    <div style="max-width: 1400px; margin: 0 auto; padding: 24px;">
+      <a href={backUrl} style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #475569; text-decoration: none; margin-bottom: 16px;">
+        <i class="fa-solid fa-arrow-left" style="font-size: 11px"></i>
+        <span>{lang === 'ar' ? 'العودة إلى الوكالات' : 'Retour aux agences'}</span>
+      </a>
+
+      <div style="display: flex; align-items: flex-start; gap: 20px;" class="agency-header">
+        <div style="width: 96px; height: 96px; background: #0F172A; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 28px; flex-shrink: 0; overflow: hidden;">
+          {agency.logo_url ? (
+            <img src={agency.logo_url} alt={agency.name} style="width: 100%; height: 100%; object-fit: cover;" />
+          ) : (
+            <span>{initials}</span>
+          )}
+        </div>
+
+        <div style="flex: 1; min-width: 0;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
+            <h1 style="font-size: 26px; font-weight: 800; color: #0F172A; margin: 0;">{agency.name}</h1>
+            {agency.is_verified && (
+              <span style="display: inline-flex; align-items: center; gap: 4px; background: #16A34A; color: white; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 100px;">
+                <i class="fa-solid fa-check" style="font-size: 9px"></i>
+                {t('agency.verified') || 'Vérifiée'}
+              </span>
+            )}
+            <FollowButton client:load lang={lang} sellerType="agency" sellerId={agency.id} />
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: #475569; margin-bottom: 12px;">
+            <span style="display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-tag" style="font-size: 11px; color: #16A34A"></i>
+              <span style="font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
+                {tierLabels[agency.subscription_tier] || agency.subscription_tier}
+              </span>
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-car" style="font-size: 11px; color: #16A34A"></i>
+              <strong style="color: #0F172A;"><span dir="ltr">{agency.vehicles_count}</span></strong>
+              <span>{lang === 'ar' ? 'سيارة نشطة' : 'véhicules actifs'}</span>
+            </span>
+            {memberSince && (
+              <span style="display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-calendar-check" style="font-size: 11px; color: #16A34A"></i>
+                <span>{lang === 'ar' ? 'منذ' : 'Depuis'} <span dir="ltr">{memberSince}</span></span>
+              </span>
+            )}
+          </div>
+
+          {agency.description && (
+            <p style="font-size: 13px; color: #475569; line-height: 1.6; margin: 0; max-width: 700px;">
+              {agency.description}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding: 24px; background: #F8FAFC;">
+    <div style="max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 320px; gap: 20px;" class="agency-layout">
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+          <h2 style="font-size: 18px; font-weight: 800; color: #0F172A; margin: 0;">
+            {lang === 'ar' ? 'سيارات هذه الوكالة' : 'Véhicules de cette agence'}
+          </h2>
+          <span style="font-size: 13px; color: #475569;">
+            <strong style="color: #0F172A"><span dir="ltr">{vehicles.length}</span></strong> {lang === 'ar' ? 'إعلان' : 'annonces'}
+          </span>
+        </div>
+
+        {vehicles.length === 0 ? (
+          <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px; border: 1px solid #E2E8F0;">
+            <i class="fa-solid fa-car-burst" style="font-size: 36px; color: #CBD5E1; margin-bottom: 12px"></i>
+            <p style="font-size: 14px; color: #475569; margin: 0;">
+              {lang === 'ar' ? 'لا توجد سيارات حاليا' : 'Aucun véhicule actuellement'}
+            </p>
+          </div>
+        ) : (
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;" class="agency-vehicles-grid">
+            {vehicles.map((v) => <VehicleCard vehicle={v} />)}
+          </div>
+        )}
+      </div>
+
+      <aside style="position: sticky; top: 20px; height: fit-content;">
+        <div style="background: white; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px;">
+          <h3 style="font-size: 14px; font-weight: 800; color: #0F172A; margin: 0 0 14px;">
+            {lang === 'ar' ? 'معلومات الاتصال' : 'Contact'}
+          </h3>
+
+          <div style="display: grid; gap: 10px;">
+            {agency.address && (
+              <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #475569;">
+                <i class="fa-solid fa-location-dot" style="font-size: 13px; color: #0F172A; width: 16px; margin-top: 2px"></i>
+                <span>{agency.address}{cityName ? ', ' + cityName : ''}</span>
+              </div>
+            )}
+            {agency.email && (
+              <a href={'mailto:' + agency.email} style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #475569; text-decoration: none;">
+                <i class="fa-solid fa-envelope" style="font-size: 13px; color: #0F172A; width: 16px"></i>
+                <span style="overflow: hidden; text-overflow: ellipsis;">{agency.email}</span>
+              </a>
+            )}
+            {agency.website && (
+              <a href={agency.website} target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #0F172A; text-decoration: none; font-weight: 600;">
+                <i class="fa-solid fa-globe" style="font-size: 13px; color: #0F172A; width: 16px"></i>
+                <span style="overflow: hidden; text-overflow: ellipsis;">{agency.website.replace(/^https?:\/\//, '')}</span>
+              </a>
+            )}
+          </div>
+
+          {(agency.phone_whatsapp || agency.phone_call) && (
+            <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid #E2E8F0; display: grid; gap: 8px;">
+              {agency.phone_whatsapp && (
+                <a href={'https://wa.me/' + agency.phone_whatsapp} target="_blank" rel="noopener" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 44px; background: #16A34A; color: white; border-radius: 8px; font-size: 14px; font-weight: 700; text-decoration: none;">
+                  <i class="fa-brands fa-whatsapp"></i>
+                  <span>WhatsApp</span>
+                </a>
+              )}
+              {agency.phone_call && (
+                <a href={'tel:' + agency.phone_call} style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 44px; background: #15803D; color: white; border-radius: 8px; font-size: 14px; font-weight: 700; text-decoration: none;">
+                  <i class="fa-solid fa-phone"></i>
+                  <span>{lang === 'ar' ? 'اتصل الآن' : 'Appeler'}</span>
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+
+        {agency.lat && agency.lng && (
+          <div style="margin-top: 24px;">
+            <h3 style="font-size: 15px; font-weight: 800; color: #0F172A; margin: 0 0 12px; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-map-location-dot" style="font-size: 14px; color: #16A34A"></i>
+              {lang === 'ar' ? 'الموقع' : 'Localisation'}
+            </h3>
+            <LeafletAgencyMap
+              client:visible
+              lat={agency.lat}
+              lng={agency.lng}
+              agencyName={agency.name}
+              address={agency.address}
+              city={cityName}
+              lang={lang}
+              height={400}
+            />
+          </div>
+        )}
+      </aside>
+    </div>
+  </section>
+
+  {agency.id && (
+    <section style="padding: 0 24px 24px; background: #F8FAFC;">
+      <div style="max-width: 1400px; margin: 0 auto;">
+        <ReviewsSection
+          client:load
+          lang={lang}
+          vehicleId={vehicles[0]?.id || ''}
+          sellerType="agency"
+          sellerId={agency.id}
+        />
+      </div>
+    </section>
+  )}
+
+  <Footer />
+</Layout>
+
+<style>
+  @media (max-width: 1024px) {
+    .agency-layout { grid-template-columns: 1fr !important; }
+    .agency-vehicles-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  }
+  @media (max-width: 640px) {
+    .agency-header { flex-direction: column !important; }
+    .agency-vehicles-grid { grid-template-columns: 1fr !important; }
+  }
+</style>

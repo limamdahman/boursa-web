@@ -1,0 +1,36 @@
+---
+import type { Vehicle } from '@/lib/types';
+import VehicleCard from './VehicleCard.astro';
+import { getLang, useTranslations } from '@/i18n/translations';
+
+interface Props {
+  vehicles: Vehicle[];
+  total?: number;
+}
+
+const { vehicles, total } = Astro.props;
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+---
+
+<section class="pb-12">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+    <div class="flex items-baseline mb-6">
+      <h2 class="text-xl font-extrabold text-[var(--color-text-1)]">
+        {t('featured.title')}
+      </h2>
+      <a
+        href={`/${lang}/vehicules`}
+        class="ms-auto text-xs font-bold text-[var(--color-brand-600)] hover:text-[var(--color-brand-700)] flex items-center gap-1"
+      >
+        {t('featured.viewAllVehicles', { count: total ?? '' })} {lang === 'ar' ? '←' : '→'}
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {vehicles.map((vehicle, index) => (
+        <VehicleCard vehicle={vehicle} featured={index === 0} />
+      ))}
+    </div>
+  </div>
+</section>

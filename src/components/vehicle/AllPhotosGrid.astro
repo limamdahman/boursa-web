@@ -1,0 +1,33 @@
+---
+import { useTranslations, getLang } from '@/i18n/translations';
+
+interface Props {
+  media: any[];
+}
+
+const { media } = Astro.props;
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+if (!media || media.length === 0) return null;
+---
+
+<div style="background: white; border-radius: 12px; border: 1px solid #E2E8F0; padding: 24px;">
+  <h2 style="font-size: 16px; font-weight: 800; color: #0F172A; margin: 0 0 14px; display: flex; align-items: center; gap: 8px;">
+    <i class="fa-solid fa-images" style="font-size: 13px; color: #16A34A"></i>
+    {t('vehicle.allPhotos') || 'Toutes les photos'}
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #64748B; font-weight: 500;">({media.length})</span>
+  </h2>
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;" class="all-photos-grid">
+    {media.map((m) => (
+      <a href={m.url_lg ?? m.url_md} target="_blank" rel="noopener" style="display: block; aspect-ratio: 1; overflow: hidden; border-radius: 8px; background: #F8FAFC;">
+        <img src={m.url_thumb ?? m.url_md} alt="" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" />
+      </a>
+    ))}
+  </div>
+</div>
+
+<style>
+  @media (max-width: 768px) { .all-photos-grid { grid-template-columns: repeat(3, 1fr) !important; } }
+  @media (max-width: 480px) { .all-photos-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+</style>

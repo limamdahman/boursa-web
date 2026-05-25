@@ -1,0 +1,71 @@
+---
+import { useTranslations, getLang } from '@/i18n/translations';
+
+interface Props {
+  vehicle: any;
+}
+
+const { vehicle } = Astro.props;
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const fmtKm = (n: number) => new Intl.NumberFormat(lang === 'ar' ? 'en-US' : 'fr-FR').format(n ?? 0);
+
+const specs = vehicle.specs ?? {};
+const cityName = lang === 'ar' && vehicle.city?.name_ar ? vehicle.city.name_ar : vehicle.city?.name_fr;
+
+const items = [
+  { icon: 'gauge-high', label: t('vehicle.mileage'), value: fmtKm(vehicle.mileage_km) + ' km' },
+  { icon: 'gas-pump', label: t('vehicle.fuel'), value: t('fuel.' + vehicle.fuel) },
+  { icon: 'gears', label: t('vehicle.transmission'), value: t('transmission.' + vehicle.transmission) },
+  { icon: 'car-side', label: t('vehicle.bodyType'), value: t('bodyType.' + vehicle.body_type) },
+  { icon: 'calendar', label: t('vehicle.year'), value: String(vehicle.year) },
+  { icon: 'palette', label: t('vehicle.color') || 'Couleur', value: vehicle.color || '—' },
+];
+
+if (specs.seats) items.push({ icon: 'users', label: t('vehicle.seats') || 'Places', value: String(specs.seats) });
+if (specs.doors) items.push({ icon: 'right-from-bracket', label: t('vehicle.doors') || 'Portes', value: String(specs.doors) });
+if (cityName) items.push({ icon: 'location-dot', label: t('vehicle.city'), value: cityName });
+---
+
+<div style="background: white; border-radius: 12px; border: 1px solid #E2E8F0; padding: 24px;">
+  <h2 style="font-size: 16px; font-weight: 800; color: #0F172A; margin: 0 0 18px;">
+    {t('vehicle.characteristics')}
+  </h2>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;" class="specs-grid-resp">
+    {items.map((item) => (
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #F8FAFC; border-radius: 8px;">
+        <div style="width: 36px; height: 36px; background: #F1F5F9; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <i class={"fa-solid fa-" + item.icon} style="font-size: 14px; color: #0F172A"></i>
+        </div>
+        <div style="min-width: 0; flex: 1;">
+          <div style="font-size: 10px; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; font-family: 'JetBrains Mono', monospace;">
+            {item.label}
+          </div>
+          <div style="font-size: 13px; font-weight: 700; color: #0F172A;">{item.value}</div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  {specs.options && Array.isArray(specs.options) && specs.options.length > 0 && (
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #E2E8F0;">
+      <h3 style="font-size: 13px; font-weight: 800; color: #0F172A; margin: 0 0 12px;">
+        {t('vehicle.equipment') || 'Équipements'}
+      </h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        {specs.options.map((opt: string) => (
+          <span style="display: inline-flex; align-items: center; gap: 6px; background: #F0FDF4; color: #15803D; font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 6px; border: 1px solid #BBF7D0;">
+            <i class="fa-solid fa-check" style="font-size: 9px"></i>
+            {t('option.' + opt) || opt}
+          </span>
+        ))}
+      </div>
+    </div>
+  )}
+</div>
+
+<style>
+  @media (max-width: 768px) { .specs-grid-resp { grid-template-columns: repeat(2, 1fr) !important; } }
+  @media (max-width: 480px) { .specs-grid-resp { grid-template-columns: 1fr !important; } }
+</style>

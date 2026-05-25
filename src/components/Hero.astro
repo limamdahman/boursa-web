@@ -1,0 +1,151 @@
+---
+import SearchBox from './SearchBox';
+import SearchHero from './SearchHero';
+import { getLang, useTranslations } from '@/i18n/translations';
+import type { Brand, City } from '@/lib/types';
+
+interface Props {
+  brands: Brand[];
+  cities: City[];
+  totalVehicles: number;
+  totalAgencies?: number;
+  totalCities?: number;
+}
+
+const { brands, cities, totalVehicles, totalAgencies = 12, totalCities = 8 } = Astro.props;
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const chips = [
+  { icon: 'car', label: t('hero.chip.toyota'), href: '/' + lang + '/vehicules?q=toyota+camry' },
+  { icon: 'car-rear', label: t('hero.chip.tucson'), href: '/' + lang + '/vehicules?q=hyundai+tucson' },
+  { icon: 'truck-pickup', label: t('hero.chip.pickup'), href: '/' + lang + '/vehicules?body_type=pickup' },
+  { icon: 'tag', label: t('hero.chip.budget'), href: '/' + lang + '/vehicules?price_max=1500000' },
+  { icon: 'location-dot', label: t('hero.chip.nouakchott'), href: '/' + lang + '/vehicules?city=nouakchott' },
+];
+
+const aiPlaceholder = t('hero.search.ai.placeholder.1');
+const formattedTotal = new Intl.NumberFormat(lang === 'ar' ? 'en-US' : 'fr-FR').format(totalVehicles);
+const isRtl = lang === 'ar';
+
+const eyebrowHtml = t('hero.eyebrow', { count: formattedTotal });
+const subtitleHtml = t('hero.subtitle', { count: '<strong class="text-white">' + formattedTotal + '</strong>' });
+const overlayStyle = isRtl
+  ? 'background: linear-gradient(to right, rgba(6,78,59,1) 0%, rgba(6,78,59,0.85) 25%, rgba(6,78,59,0.0) 70%);'
+  : 'background: linear-gradient(to left, rgba(6,78,59,1) 0%, rgba(6,78,59,0.85) 25%, rgba(6,78,59,0.0) 70%);';
+const wrapperPos = isRtl ? 'left: 0' : 'right: 0';
+---
+
+<section class="relative overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-br from-[#064E3B] via-[#166534] to-[#14532D]"></div>
+
+  <div class="hero-image-wrapper" style={wrapperPos}>
+    <img src="/images/hero-desert.jpg" alt="" class="hero-image" loading="eager" />
+    <div class="hero-image-overlay" style={overlayStyle}></div>
+  </div>
+
+  <div class="absolute top-0 end-0 w-[400px] h-[400px] bg-[#22C55E] opacity-15 blur-3xl pointer-events-none -translate-y-1/4 translate-x-1/4"></div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-14 md:py-16">
+    <div class="hero-grid">
+      <div class="hero-content">
+
+        <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white font-mono text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-full mb-5">
+          <span class="ping-dot"></span>
+          <span set:html={eyebrowHtml} />
+        </div>
+
+        <h1 class="font-display text-4xl md:text-5xl font-extrabold text-white leading-[1.05] mb-3">
+          {t('hero.title.line1')}<br />
+          <span class="text-[#22C55E]">{t('hero.title.line2')}</span>
+        </h1>
+
+        <p class="text-base text-white/80 mb-7 max-w-xl">
+          <span set:html={subtitleHtml} />
+        </p>
+
+        <SearchHero client:load lang={lang} placeholder={aiPlaceholder} />
+
+        <div class="mt-5">
+          <SearchBox client:load brands={brands} cities={cities} lang={lang} totalVehicles={totalVehicles} />
+        </div>
+
+        <div class="mt-8 flex flex-wrap gap-10 text-white">
+          <div>
+            <div class="font-display text-3xl font-extrabold leading-none">
+              {totalVehicles}<span class="text-[#22C55E]">+</span>
+            </div>
+            <div class="font-mono text-[10px] text-white/55 uppercase tracking-wider mt-1.5">
+              {t('hero.stats.vehicles')}
+            </div>
+          </div>
+          <div>
+            <div class="font-display text-3xl font-extrabold leading-none">{totalAgencies}</div>
+            <div class="font-mono text-[10px] text-white/55 uppercase tracking-wider mt-1.5">
+              {t('hero.stats.agencies')}
+            </div>
+          </div>
+          <div>
+            <div class="font-display text-3xl font-extrabold leading-none">{totalCities}</div>
+            <div class="font-mono text-[10px] text-white/55 uppercase tracking-wider mt-1.5">
+              {t('hero.stats.cities')}
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-7 flex flex-wrap gap-2">
+          {chips.map((chip) => (
+            <a href={chip.href} class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-md text-xs font-semibold text-white hover:bg-white/20 transition-colors">
+              <i class={'fa-solid fa-' + chip.icon + ' text-[11px]'}></i>
+              {chip.label}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div class="hero-spacer"></div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 40px;
+    align-items: center;
+  }
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .hero-content > * {
+    max-width: 100%;
+  }
+  .hero-image-wrapper {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  .hero-image-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  @media (max-width: 1024px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-image-wrapper { display: none; }
+    .hero-spacer { display: none; }
+  }
+</style>

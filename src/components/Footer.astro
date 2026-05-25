@@ -1,0 +1,76 @@
+---
+import { getLang, useTranslations } from '@/i18n/translations';
+
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const columns = [
+  {
+    titleKey: 'footer.col.boursa',
+    links: [
+      { labelKey: 'footer.link.about', href: 'a-propos' },
+      { labelKey: 'footer.link.careers', href: 'carrieres' },
+      { labelKey: 'footer.link.contact', href: 'contact' },
+      { labelKey: 'footer.link.magazine', href: 'magazine' },
+    ],
+  },
+  {
+    titleKey: 'footer.col.buyers',
+    links: [
+      { labelKey: 'footer.link.search', href: 'vehicules' },
+      { labelKey: 'footer.link.favorites', href: 'favoris' },
+      { labelKey: 'footer.link.estimate', href: 'estimer' },
+      { labelKey: 'footer.link.buyGuide', href: 'guide-achat' },
+    ],
+  },
+  {
+    titleKey: 'footer.col.sellers',
+    links: [
+      { labelKey: 'footer.link.publish', href: 'publier' },
+      { labelKey: 'footer.link.becomeAgency', href: 'agences/inscription' },
+      { labelKey: 'footer.link.pricing', href: 'tarifs' },
+      { labelKey: 'footer.link.terms', href: 'cgu' },
+    ],
+  },
+];
+---
+
+<footer class="bg-[var(--color-text-1)] text-white/70">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8 py-10">
+    <div class="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr_1fr] gap-8">
+      <div>
+        <a href={`/${lang}/`} class="flex items-center gap-2 mb-3">
+          <img src="/images/boursa-mark.png" alt="" class="h-6 w-auto brightness-0 invert" />
+          <span class="text-xl font-extrabold tracking-[-0.04em] text-white">
+            boursa<span class="text-[var(--color-brand-500)]">.</span>
+          </span>
+        </a>
+        <p class="text-xs leading-relaxed max-w-xs">
+          {t('footer.tagline')}
+        </p>
+      </div>
+
+      {columns.map((col) => (
+        <div>
+          <h5 class="text-xs font-bold text-white uppercase tracking-wider mb-3">
+            {t(col.titleKey)}
+          </h5>
+          <ul class="space-y-2">
+            {col.links.map((link) => (
+              <li>
+                <a href={`/${lang}/${link.href}`} class="text-xs hover:text-white transition-colors">
+                  {t(link.labelKey)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+
+    <div class="border-t border-white/10 mt-8 pt-5 flex flex-col md:flex-row justify-between gap-2 text-[10px] text-white/40">
+      <div>{t('footer.copyright')}</div>
+      <div>{t('footer.legal')}</div>
+    </div>
+  </div>
+</footer>

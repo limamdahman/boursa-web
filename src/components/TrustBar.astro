@@ -1,0 +1,31 @@
+---
+import { getLang, useTranslations } from '@/i18n/translations';
+
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const trustItems = [
+  { icon: 'shield-check', titleKey: 'trust.verified.title', descKey: 'trust.verified.desc' },
+  { icon: 'tag', titleKey: 'trust.prices.title', descKey: 'trust.prices.desc' },
+  { icon: 'whatsapp', iconBrand: true, titleKey: 'trust.contact.title', descKey: 'trust.contact.desc' },
+  { icon: 'location-dot', titleKey: 'trust.local.title', descKey: 'trust.local.desc' },
+];
+---
+
+<section class="bg-[var(--color-bg)] border-t border-b border-[var(--color-hairline)]">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8 py-10">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {trustItems.map((item) => (
+        <div class="flex gap-3 items-start">
+          <div class="w-9 h-9 bg-[var(--color-brand-100)] text-[var(--color-brand-600)] rounded-lg flex items-center justify-center flex-shrink-0">
+            <i class={`${item.iconBrand ? 'fa-brands' : 'fa-solid'} fa-${item.icon} text-base`}></i>
+          </div>
+          <div>
+            <h3 class="text-[13px] font-bold text-[var(--color-text-1)]">{t(item.titleKey)}</h3>
+            <p class="text-[11px] text-[var(--color-text-2)] leading-relaxed mt-0.5">{t(item.descKey)}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

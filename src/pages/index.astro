@@ -1,0 +1,10 @@
+---
+export const prerender = false;
+
+// Détection serveur
+const acceptLang = Astro.request.headers.get('accept-language') ?? '';
+const prefersArabic = acceptLang.toLowerCase().includes('ar');
+const target = prefersArabic ? '/ar/' : '/fr/';
+
+return Astro.redirect(target, 302);
+---

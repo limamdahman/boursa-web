@@ -1,0 +1,54 @@
+---
+import { useTranslations, getLang } from '@/i18n/translations';
+
+interface Props {
+  agency: any;
+}
+
+const { agency } = Astro.props;
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const cityName = lang === 'ar' && agency.city?.name_ar ? agency.city.name_ar : agency.city?.name_fr;
+const tierLabels: Record<string, string> = { free: lang === 'ar' ? 'مجاني' : 'Gratuit', premium: 'Premium', business: 'Business' };
+const detailUrl = '/' + lang + '/agences/' + agency.slug;
+const initials = agency.name.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
+---
+
+<a href={detailUrl} style="display: block; background: white; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; text-decoration: none; transition: all 0.15s; cursor: pointer;" onmouseover="this.style.borderColor='#16A34A'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(22,163,74,0.1)'" onmouseout="this.style.borderColor='#E2E8F0'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+  <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px;">
+    <div style="width: 56px; height: 56px; background: #0F172A; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 18px; flex-shrink: 0; overflow: hidden;">
+      {agency.logo_url ? (
+        <img src={agency.logo_url} alt={agency.name} style="width: 100%; height: 100%; object-fit: cover;" />
+      ) : (
+        <span>{initials}</span>
+      )}
+    </div>
+    <div style="flex: 1; min-width: 0;">
+      <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap;">
+        <h3 style="font-size: 16px; font-weight: 800; color: #0F172A; margin: 0;">{agency.name}</h3>
+        {agency.is_verified && (
+          <span style="display: inline-flex; align-items: center; gap: 3px; background: #16A34A; color: white; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 100px;">
+            <i class="fa-solid fa-check" style="font-size: 8px"></i>
+            {t('agency.verified') || 'Vérifiée'}
+          </span>
+        )}
+      </div>
+      <div style="font-size: 11px; color: #64748B; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em;">
+        {tierLabels[agency.subscription_tier] || agency.subscription_tier}
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid #E2E8F0;">
+    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #475569;">
+      <i class="fa-solid fa-location-dot" style="font-size: 11px; color: #16A34A"></i>
+      <span>{cityName || '—'}</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #0F172A;">
+      <i class="fa-solid fa-car" style="font-size: 11px; color: #16A34A"></i>
+      <span dir="ltr">{agency.vehicles_count}</span>
+      <span style="font-size: 11px; color: #64748B; font-weight: 500;">{lang === 'ar' ? 'سيارة' : 'véh.'}</span>
+    </div>
+  </div>
+</a>

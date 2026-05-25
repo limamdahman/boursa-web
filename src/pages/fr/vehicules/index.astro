@@ -1,0 +1,139 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import VehicleCard from '@/components/VehicleCard.astro';
+import VehicleFilters from '@/components/VehicleFilters';
+import VehicleSort from '@/components/VehicleSort';
+import ActiveFiltersChips from '@/components/ActiveFiltersChips';
+import { listVehicles, listBrands, listCities } from '@/lib/api';
+import { getLang, useTranslations } from '@/i18n/translations';
+
+export const prerender = false;
+
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const url = Astro.url;
+const filterKeys = ['q', 'brand_id', 'vehicle_model_id', 'city_id', 'price_min', 'price_max', 'year_min', 'year_max', 'mileage_max', 'fuel', 'transmission', 'body_type', 'condition', 'sort'];
+const params: Record<string, any> = {};
+filterKeys.forEach((key) => {
+  const val = url.searchParams.get(key);
+  if (val) params[key] = val;
+});
+
+const page = parseInt(url.searchParams.get('page') || '1', 10);
+
+let brands: any[] = [];
+let cities: any[] = [];
+let listing: any = null;
+
+try {
+  [brands, cities, listing] = await Promise.all([
+    listBrands().catch(() => []),
+    listCities().catch(() => []),
+    listVehicles({ ...params, page, per_page: 20 }).catch(() => null),
+  ]);
+} catch (err) {
+  console.error('Erreur listing vehicules:', err);
+}
+
+const vehicles = listing?.data ?? [];
+const total = listing?.meta?.total ?? 0;
+const lastPage = listing?.meta?.last_page ?? 1;
+
+// Filtres parsés depuis q (retournés par l'API)
+const parsedFilters: Record<string, any> = listing?.meta?.parsed_filters ?? {};
+
+// Initial filters pour la sidebar : URL params + parsed (URL prioritaire)
+const initialFilters: Record<string, string> = {};
+filterKeys.forEach((key) => {
+  if (key !== 'sort' && key !== 'q' && params[key]) initialFilters[key] = String(params[key]);
+});
+// Ajouter les parsed qui ne sont pas déjà dans URL
+Object.entries(parsedFilters).forEach(([k, v]) => {
+  if (!initialFilters[k] && v !== null && v !== undefined && v !== '') {
+    initialFilters[k] = String(v);
+  }
+});
+
+// Fusionner pour les ActiveFiltersChips (URL + parsed)
+const allActiveFilters: Record<string, string> = { ...initialFilters };
+
+---
+
+<Layout title={t('listing.title')}>
+  <Header active="vehicules" />
+
+  <section style="background: white; border-bottom: 1px solid #E2E8F0;">
+    <div style="max-width: 1400px; margin: 0 auto; padding: 24px;">
+      <h1 style="font-size: 24px; font-weight: 800; color: #0F172A; margin: 0;">
+        {t('listing.title')}
+      </h1>
+      <p style="font-size: 13px; color: #475569; margin-top: 4px;">
+        <strong style="color: #0F172A">{total}</strong> {t('listing.count', { count: '' }).replace('{count}', '').trim()}
+      </p>
+    </div>
+  </section>
+
+  <section style="padding: 24px; background: #F8FAFC;">
+    <div style="max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 280px 1fr; gap: 20px;" class="vehicules-layout">
+      <div>
+        <VehicleFilters client:load brands={brands} cities={cities} lang={lang} initialFilters={initialFilters} />
+      </div>
+
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; background: white; padding: 12px 16px; border-radius: 8px; border: 1px solid #E2E8F0;">
+          <span style="font-size: 13px; color: #475569;">
+            <strong style="color: #0F172A">{total}</strong> {lang === 'ar' ? 'سيارة' : 'véhicules'}
+          </span>
+          <VehicleSort client:load current={params.sort || 'recent'} lang={lang} />
+        </div>
+
+        <ActiveFiltersChips client:load activeFilters={allActiveFilters} brands={brands} cities={cities} lang={lang} query={params.q} />
+
+        {vehicles.length === 0 ? (
+          <div style="text-align: center; padding: 80px 20px; background: white; border-radius: 12px; border: 1px solid #E2E8F0;">
+            <i class="fa-solid fa-car-burst" style="font-size: 48px; color: #CBD5E1; margin-bottom: 16px"></i>
+            <h2 style="font-size: 18px; font-weight: 800; color: #0F172A; margin: 0">{t('listing.empty.title')}</h2>
+            <p style="font-size: 13px; color: #475569; margin-top: 6px">{t('listing.empty.subtitle')}</p>
+          </div>
+        ) : (
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;" class="vehicules-grid">
+            {vehicles.map((v: any) => <VehicleCard vehicle={v} />)}
+          </div>
+        )}
+
+        {lastPage > 1 && (
+          <div style="display: flex; justify-content: center; gap: 8px; margin-top: 28px;">
+            {page > 1 && (
+              <a href={`?${new URLSearchParams({...params, page: String(page-1)}).toString()}`} style="padding: 8px 14px; background: white; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; font-weight: 600; color: #0F172A; text-decoration: none;">
+                ← {lang === 'ar' ? 'السابق' : 'Précédent'}
+              </a>
+            )}
+            <span style="padding: 8px 14px; font-size: 13px; color: #475569;">
+              {page} / {lastPage}
+            </span>
+            {page < lastPage && (
+              <a href={`?${new URLSearchParams({...params, page: String(page+1)}).toString()}`} style="padding: 8px 14px; background: #16A34A; border: 1px solid #16A34A; border-radius: 6px; font-size: 13px; font-weight: 600; color: white; text-decoration: none;">
+                {lang === 'ar' ? 'التالي' : 'Suivant'} →
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>
+
+<style>
+  @media (max-width: 1024px) {
+    .vehicules-layout { grid-template-columns: 1fr !important; }
+    .vehicules-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  }
+  @media (max-width: 640px) {
+    .vehicules-grid { grid-template-columns: 1fr !important; }
+  }
+</style>

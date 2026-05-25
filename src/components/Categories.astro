@@ -1,0 +1,85 @@
+---
+import CategoryIcons from './CategoryIcons';
+import { listVehicles } from '@/lib/api';
+import { getLang, useTranslations } from '@/i18n/translations';
+
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+interface CategoryDef {
+  labelKey: string;
+  icon: string;
+  body_type?: string;
+  fuel?: string;
+}
+
+const categoryDefs: CategoryDef[] = [
+  { labelKey: 'categories.sedan', body_type: 'sedan', icon: 'car' },
+  { labelKey: 'categories.suv', body_type: 'suv', icon: 'suv' },
+  { labelKey: 'categories.pickup', body_type: 'pickup', icon: 'pickup' },
+  { labelKey: 'categories.van', body_type: 'van', icon: 'van' },
+  { labelKey: 'categories.hatchback', body_type: 'hatchback', icon: 'moto' },
+  { labelKey: 'categories.electric', fuel: 'hybrid', icon: 'bolt' },
+];
+
+async function fetchCount(cat: CategoryDef): Promise<number> {
+  const params: Record<string, any> = { per_page: 5 };
+  if (cat.body_type) params.body_type = cat.body_type;
+  if (cat.fuel) params.fuel = cat.fuel;
+  try {
+    const result = await listVehicles(params);
+    if (result && result.meta && typeof result.meta.total === 'number') {
+      return result.meta.total;
+    }
+  } catch (e) { /* silent */ }
+  return 0;
+}
+
+function buildHref(cat: CategoryDef): string {
+  if (cat.body_type) return `/${lang}/vehicules?body_type=${cat.body_type}`;
+  if (cat.fuel) return `/${lang}/vehicules?fuel=${cat.fuel}`;
+  return `/${lang}/vehicules`;
+}
+
+const categoriesWithCounts = await Promise.all(
+  categoryDefs.map(async (cat) => ({
+    label: t(cat.labelKey),
+    icon: cat.icon,
+    count: await fetchCount(cat),
+    href: buildHref(cat),
+  }))
+);
+---
+
+<section class="py-12">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+    <div class="flex items-baseline mb-6">
+      <h2 class="text-xl font-extrabold text-[var(--color-text-1)]">
+        {t('categories.title')}
+      </h2>
+      <a
+        href={`/${lang}/vehicules`}
+        class="ms-auto text-xs font-bold text-[var(--color-brand-600)] hover:text-[var(--color-brand-700)] flex items-center gap-1"
+      >
+        {t('categories.viewAll')} {lang === 'ar' ? '←' : '→'}
+      </a>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 bg-white rounded-xl border border-[var(--color-hairline)] overflow-hidden">
+      {categoriesWithCounts.map((cat) => (
+        <a
+          href={cat.href}
+          class="group h-32 flex flex-col items-center justify-center gap-3 border-e border-b border-[var(--color-hairline)] last:border-e-0 text-[var(--color-text-1)] hover:text-[var(--color-brand-600)] hover:bg-[var(--color-bg)] transition-all duration-200 relative"
+        >
+          <span class="absolute top-2 end-2 text-[9px] font-extrabold text-[var(--color-text-3)] bg-[var(--color-bg)] border border-[var(--color-hairline)] px-1.5 py-0.5 rounded-full">
+            {cat.count}
+          </span>
+
+          <CategoryIcons name={cat.icon} />
+
+          <span class="text-xs font-bold text-center px-2">{cat.label}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>

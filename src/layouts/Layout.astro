@@ -1,0 +1,81 @@
+---
+import '@/styles/global.css';
+import { getLang, getDir, useTranslations } from '@/i18n/translations';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const lang = getLang(Astro.currentLocale);
+const dir = getDir(lang);
+const t = useTranslations(lang);
+
+const defaultTitle = lang === 'ar'
+  ? 'بورصا — منصة السيارات في موريتانيا'
+  : 'Boursa — Marketplace auto en Mauritanie';
+
+const defaultDescription = lang === 'ar'
+  ? 'اشترِ وبع السيارات المستعملة في موريتانيا. أكثر من 2400 إعلان معتمد.'
+  : "Achetez et vendez des véhicules d'occasion en Mauritanie. Plus de 2 400 annonces vérifiées.";
+
+const {
+  title = defaultTitle,
+  description = defaultDescription,
+  ogImage = '/images/og-default.png',
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site || 'https://boursa.mr').toString();
+const altLang = lang === 'fr' ? 'ar' : 'fr';
+const altPath = Astro.url.pathname.replace(`/${lang}/`, `/${altLang}/`);
+---
+
+<!doctype html>
+<html lang={lang} dir={dir}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/png" href="/images/boursa-mark.png" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Alt language for SEO -->
+    <link rel="alternate" hreflang={lang} href={canonical} />
+    <link rel="alternate" hreflang={altLang} href={altPath} />
+    <link rel="alternate" hreflang="x-default" href={canonical.replace(`/${lang}/`, '/fr/')} />
+
+    <!-- OpenGraph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content={lang === 'ar' ? 'ar_MR' : 'fr_MR'} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800;900&family=Inter+Tight:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Cairo:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  </head>
+  <body class:list={[lang === 'ar' && 'font-arabic']}>
+    <slot />
+  </body>
+</html>

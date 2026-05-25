@@ -1,0 +1,20 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import LoginForm from '@/components/LoginForm';
+import { getLang, useTranslations } from '@/i18n/translations';
+
+export const prerender = false;
+
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+---
+
+<Layout title={lang === 'ar' ? 'تسجيل الدخول' : 'Connexion'}>
+  <Header />
+  <main style="min-height: calc(100vh - 200px); background: #F8FAFC; padding: 40px 0;">
+    <LoginForm client:load lang={lang} />
+  </main>
+  <Footer />
+</Layout>
