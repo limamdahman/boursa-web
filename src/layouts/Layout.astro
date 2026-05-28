@@ -1,6 +1,7 @@
 ---
 import '@/styles/global.css';
 import { getLang, getDir, useTranslations } from '@/i18n/translations';
+import CompareBar from '@/components/CompareBar';
 
 interface Props {
   title?: string;
@@ -77,5 +78,6 @@ const altPath = Astro.url.pathname.replace(`/${lang}/`, `/${altLang}/`);
   </head>
   <body class:list={[lang === 'ar' && 'font-arabic']}>
     <slot />
+    <CompareBar client:load lang={lang} />
   </body>
 </html>

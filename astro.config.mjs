@@ -1,10 +1,15 @@
 import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 import node from '@astrojs/node';
 
 export default defineConfig({
-  integrations: [react()],
+  site: 'https://boursa.mr',
+  integrations: [
+    sitemap({
+      filter: (page) => !page.includes("/connexion") && !page.includes("/inscription") && !page.includes("/mon-compte"),
+    }),react()],
   vite: {
     plugins: [tailwindcss()],
   },

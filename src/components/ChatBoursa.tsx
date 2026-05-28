@@ -35,27 +35,56 @@ interface Message {
   time: string;
 }
 
+function playNotif() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const master = ctx.createGain();
+    master.gain.value = 0.18;
+    master.connect(ctx.destination);
+
+    // Deux notes : sol + do (style notification moderne)
+    [[784, 0, 0.15], [1046, 0.18, 0.2]].forEach(([freq, start, dur]) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.value = freq as number;
+      g.gain.setValueAtTime(0, ctx.currentTime + (start as number));
+      g.gain.linearRampToValueAtTime(1, ctx.currentTime + (start as number) + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (start as number) + (dur as number));
+      o.connect(g); g.connect(master);
+      o.start(ctx.currentTime + (start as number));
+      o.stop(ctx.currentTime + (start as number) + (dur as number));
+    });
+  } catch {}
+}
+
 export default function ChatBoursa({ lang, apiUrl }: Props) {
-  const [open, setOpen] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [convId, setConvId] = useState<string | null>(null);
-  const [unread, setUnread] = useState(0);
-  const prevMsgCount = useRef(0);
-  const openRef = useRef(false);
+  const [open, setOpen]           = useState(false);
+  const [token, setToken]         = useState<string | null>(null);
+  const [messages, setMessages]   = useState<Message[]>([]);
+  const [input, setInput]         = useState('');
+  const [convId, setConvId]       = useState<string | null>(null);
+  const [unread, setUnread]       = useState(0);
   const [agencyName, setAgencyName] = useState<string>('Boursa');
   const [agencyLogo, setAgencyLogo] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string>('Vous');
-  const [loading, setLoading] = useState(false);
-  const [lastSince, setLastSince] = useState<string | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const [userName, setUserName]   = useState<string>('Vous');
+  const [loading, setLoading]     = useState(false);
+
+  // Refs stables — évitent les stale closures dans les intervalles
+  const openRef      = useRef(false);
+  const lastSinceRef = useRef<string | null>(null);
+  const convIdRef    = useRef<string | null>(null);
+  const bottomRef    = useRef<HTMLDivElement>(null);
+
   const isRtl = lang === 'ar';
   const t = L[lang];
 
+  // Sync refs
+  useEffect(() => { openRef.current = open; if (open) setUnread(0); }, [open]);
+  useEffect(() => { convIdRef.current = convId; }, [convId]);
+
   useEffect(() => {
-    const tk = localStorage.getItem('boursa_token');
-    setToken(tk);
+    setToken(localStorage.getItem('boursa_token'));
   }, []);
 
   function getHeaders(): Record<string, string> {
@@ -66,16 +95,41 @@ export default function ChatBoursa({ lang, apiUrl }: Props) {
     };
   }
 
+  async function loadMessages(id: string, since: string | null) {
+    try {
+      const url  = apiUrl + '/chat/conversations/' + id + '/messages' + (since ? '?since=' + since : '');
+      const res  = await fetch(url, { headers: getHeaders() });
+      const data: any[] = await res.json();
+      if (!Array.isArray(data) || data.length === 0) return;
+
+      setMessages(prev => {
+        const ids  = new Set(prev.map(m => m.id));
+        const news = data.filter(m => !ids.has(m.id)).map(m => ({
+          id:   m.id,
+          from: m.sender_type === 'user' ? 'user' : 'boursa' as 'user' | 'boursa',
+          body: m.body,
+          time: new Date(m.created_at).toLocaleTimeString(lang === 'ar' ? 'ar' : 'fr', { hour: '2-digit', minute: '2-digit' }),
+        }));
+        if (news.length > 0) {
+          const fromBoursa = news.filter(m => m.from === 'boursa').length;
+          if (fromBoursa > 0 && !openRef.current) {
+            setUnread(u => u + fromBoursa);
+            playNotif();
+          }
+        }
+        return [...prev, ...news];
+      });
+      lastSinceRef.current = data[data.length - 1].created_at;
+    } catch {}
+  }
+
   async function openConv() {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await fetch(apiUrl + '/chat/support', {
-        method: 'POST',
-        headers: getHeaders(),
-      });
+      const res  = await fetch(apiUrl + '/chat/support', { method: 'POST', headers: getHeaders() });
       const data = await res.json();
-      if (!data.id) { console.error('No conv id:', data); return; }
+      if (!data.id) return;
       setConvId(data.id);
       if (data.agency) { setAgencyName(data.agency.name || 'Boursa'); setAgencyLogo(data.agency.logo_url || null); }
       if (data.user) setUserName(data.user.name || 'Vous');
@@ -84,60 +138,36 @@ export default function ChatBoursa({ lang, apiUrl }: Props) {
     setLoading(false);
   }
 
-  async function loadMessages(id: string, since: string | null) {
-    try {
-      const url = apiUrl + '/chat/conversations/' + id + '/messages' + (since ? '?since=' + since : '');
-      const res = await fetch(url, { headers: getHeaders() });
-      const data: any[] = await res.json();
-      if (data.length > 0) {
-        setMessages(prev => {
-          const ids = new Set(prev.map(m => m.id));
-          const news = data.filter(m => !ids.has(m.id)).map(m => ({
-            id: m.id,
-            from: m.sender_type === 'user' ? 'user' : 'boursa' as 'user' | 'boursa',
-            body: m.body,
-            time: new Date(m.created_at).toLocaleTimeString(lang === 'ar' ? 'ar' : 'fr', { hour: '2-digit', minute: '2-digit' }),
-          }));
-          if (news.length > 0) {
-            const newFromBoursa = news.filter(m => m.from === 'boursa').length;
-            if (newFromBoursa > 0 && !openRef.current) {
-              setTimeout(() => {
-                setUnread(u => u + newFromBoursa);
-                try {
-                  const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-                  const o = ctx.createOscillator();
-                  const g = ctx.createGain();
-                  o.connect(g); g.connect(ctx.destination);
-                  o.frequency.value = 520; g.gain.value = 0.08;
-                  o.start(); o.stop(ctx.currentTime + 0.12);
-                } catch {}
-              }, 0);
-            }
-          }
-          return [...prev, ...news];
-        });
-        setLastSince(data[data.length - 1].created_at);
-      }
-    } catch {}
-  }
-
   async function send() {
     if (!convId || !input.trim()) return;
     const body = input.trim();
     setInput('');
     await fetch(apiUrl + '/chat/conversations/' + convId + '/messages', {
-      method: 'POST',
-      headers: getHeaders(),
+      method: 'POST', headers: getHeaders(),
       body: JSON.stringify({ body }),
     });
-    await loadMessages(convId, lastSince);
+    await loadMessages(convId, lastSinceRef.current);
   }
 
+  // Polling chat ouvert — stable via refs
   useEffect(() => {
-    if (!open || !convId) return;
-    const iv = setInterval(() => loadMessages(convId, lastSince), 5000);
+    if (!open) return;
+    const iv = setInterval(() => {
+      const cid = convIdRef.current;
+      if (cid) loadMessages(cid, lastSinceRef.current);
+    }, 5000);
     return () => clearInterval(iv);
-  }, [open, convId, lastSince]);
+  }, [open]);
+
+  // Polling badge chat fermé (10s)
+  useEffect(() => {
+    if (!token) return;
+    const iv = setInterval(() => {
+      const cid = convIdRef.current;
+      if (cid && !openRef.current) loadMessages(cid, lastSinceRef.current);
+    }, 10000);
+    return () => clearInterval(iv);
+  }, [token]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -146,11 +176,6 @@ export default function ChatBoursa({ lang, apiUrl }: Props) {
   useEffect(() => {
     if (open && !convId && token) openConv();
   }, [open, token]);
-
-  useEffect(() => {
-    openRef.current = open;
-    if (open) setUnread(0);
-  }, [open]);
 
   return (
     <div style={{ position: 'fixed', bottom: '24px', left: isRtl ? 'auto' : '24px', right: isRtl ? '24px' : 'auto', zIndex: 999 }}>
@@ -186,7 +211,6 @@ export default function ChatBoursa({ lang, apiUrl }: Props) {
                 {messages.map(m => (
                   <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: m.from === 'user' ? 'flex-end' : 'flex-start', gap: '3px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', flexDirection: m.from === 'user' ? 'row-reverse' : 'row' }}>
-                      {/* Avatar */}
                       <div style={{ width: '26px', height: '26px', borderRadius: '50%', flexShrink: 0, overflow: 'hidden', background: m.from === 'user' ? '#16A34A' : '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: 'white' }}>
                         {m.from === 'user'
                           ? <span>{userName.charAt(0).toUpperCase()}</span>
@@ -195,7 +219,6 @@ export default function ChatBoursa({ lang, apiUrl }: Props) {
                             : <span>B</span>
                         }
                       </div>
-                      {/* Bulle */}
                       <div style={{ maxWidth: '72%', padding: '8px 12px', fontSize: '13px', lineHeight: 1.5, background: m.from === 'user' ? '#16A34A' : '#F1F5F9', color: m.from === 'user' ? 'white' : '#1E293B', borderRadius: m.from === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px' }}>
                         {m.body}
                         <div style={{ fontSize: '10px', opacity: 0.6, marginTop: '2px', textAlign: m.from === 'user' ? 'right' : 'left' }}>{m.time}</div>

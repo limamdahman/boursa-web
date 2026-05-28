@@ -7,6 +7,7 @@ import VehicleFilters from '@/components/VehicleFilters';
 import VehicleSort from '@/components/VehicleSort';
 import ActiveFiltersChips from '@/components/ActiveFiltersChips';
 import { listVehicles, listBrands, listCities } from '@/lib/api';
+import InfiniteVehicleGrid from '@/components/InfiniteVehicleGrid';
 import { getLang, useTranslations } from '@/i18n/translations';
 
 export const prerender = false;
@@ -99,26 +100,16 @@ const allActiveFilters: Record<string, string> = { ...initialFilters };
             <p style="font-size: 13px; color: #475569; margin-top: 6px">{t('listing.empty.subtitle')}</p>
           </div>
         ) : (
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;" class="vehicules-grid">
-            {vehicles.map((v: any) => <VehicleCard vehicle={v} />)}
-          </div>
+          <InfiniteVehicleGrid
+            client:load
+            initialVehicles={vehicles}
+            initialPage={page}
+            lastPage={lastPage}
+            apiUrl={import.meta.env.PUBLIC_API_URL}
+            params={params}
+            lang={lang}
+          />
         )}
-
-        {lastPage > 1 && (
-          <div style="display: flex; justify-content: center; gap: 8px; margin-top: 28px;">
-            {page > 1 && (
-              <a href={`?${new URLSearchParams({...params, page: String(page-1)}).toString()}`} style="padding: 8px 14px; background: white; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; font-weight: 600; color: #0F172A; text-decoration: none;">
-                ← {lang === 'ar' ? 'السابق' : 'Précédent'}
-              </a>
-            )}
-            <span style="padding: 8px 14px; font-size: 13px; color: #475569;">
-              {page} / {lastPage}
-            </span>
-            {page < lastPage && (
-              <a href={`?${new URLSearchParams({...params, page: String(page+1)}).toString()}`} style="padding: 8px 14px; background: #16A34A; border: 1px solid #16A34A; border-radius: 6px; font-size: 13px; font-weight: 600; color: white; text-decoration: none;">
-                {lang === 'ar' ? 'التالي' : 'Suivant'} →
-              </a>
-            )}
           </div>
         )}
       </div>

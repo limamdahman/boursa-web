@@ -44,9 +44,22 @@ const facts: [string, any][] = [
   [t('vehicle.bodyType'), t(`bodyType.${vehicle.body_type}`)],
 ];
 if (cityName) facts.push([t('vehicle.city'), cityName]);
+const ogTitle = `${vehicle.brand.name} ${vehicle.model.name} ${vehicle.year} — ${new Intl.NumberFormat('fr-FR').format(vehicle.price_mru)} MRU`;
+const ogDesc = `${vehicle.body_type ?? ''} · ${vehicle.year} · ${new Intl.NumberFormat('fr-FR').format(vehicle.mileage_km)} km · ${vehicle.fuel ?? ''} — ${vehicle.city?.name_ar ?? 'موريتانيا'}. إعلان موثق على بورصة`;
+const ogImg = vehicle.cover_image ?? '/images/og-default.png';
 ---
 
-<Layout title={`${vehicle.brand.name} ${vehicle.model.name} ${vehicle.year}`}>
+{/* SEO dynamique */}
+{(() => {
+  const ogTitle = `${vehicle.brand.name} ${vehicle.model.name} ${vehicle.year} — ${new Intl.NumberFormat('fr-FR').format(vehicle.price_mru)} MRU`;
+  const ogDesc = `${vehicle.body_type ?? ''} · ${vehicle.year} · ${new Intl.NumberFormat('fr-FR').format(vehicle.mileage_km)} km · ${vehicle.fuel ?? ''} — ${vehicle.city?.name_ar ?? 'موريتانيا'}. إعلان موثق على بورصة`;
+  const ogImg = vehicle.cover_image ?? '/images/og-default.png';
+  return (
+    <Layout
+      title={ogTitle}
+      description={ogDesc}
+      ogImage={ogImg}
+    >
   <Header active="vehicules" />
   <script define:vars={{ vId: vehicle.id, vBrand: vehicle.brand.name, vModel: vehicle.model.name, vYear: vehicle.year, vPrice: vehicle.price, vImg: vehicle.media && vehicle.media.length > 0 ? vehicle.media[0].url_thumb : null }}>
     try { var K="boursa_recent_vehicles"; var r=localStorage.getItem(K); var l=r?JSON.parse(r):[]; var f=l.filter(function(x){return x.id!==vId;}); localStorage.setItem(K,JSON.stringify([{id:vId,brand:vBrand,model:vModel,year:vYear,price:vPrice,image:vImg}].concat(f).slice(0,6))); } catch(e) {}
@@ -216,7 +229,6 @@ if (cityName) facts.push([t('vehicle.city'), cityName]);
           </div>
 
           <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #F1F5F9; display: grid; gap: 8px;">
-            )}
             <ShareButton
               client:load
               lang={lang}
@@ -240,4 +252,6 @@ if (cityName) facts.push([t('vehicle.city'), cityName]);
       loginUrl={'/' + lang + '/connexion'}
     />
   )}
-</Layout>
+    </Layout>
+  );
+})()}

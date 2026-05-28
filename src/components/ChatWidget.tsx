@@ -32,57 +32,96 @@ const L = {
   },
 };
 
+function playNotif() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const master = ctx.createGain();
+    master.gain.value = 0.18;
+    master.connect(ctx.destination);
+
+    // Deux notes : sol + do (style notification moderne)
+    [[784, 0, 0.15], [1046, 0.18, 0.2]].forEach(([freq, start, dur]) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.value = freq as number;
+      g.gain.setValueAtTime(0, ctx.currentTime + (start as number));
+      g.gain.linearRampToValueAtTime(1, ctx.currentTime + (start as number) + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (start as number) + (dur as number));
+      o.connect(g); g.connect(master);
+      o.start(ctx.currentTime + (start as number));
+      o.stop(ctx.currentTime + (start as number) + (dur as number));
+    });
+  } catch {}
+}
+
 export default function ChatWidget({ agencyId, agencyName, lang, apiUrl, loginUrl }: Props) {
-  const [open, setOpen] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
+  const [open, setOpen]               = useState(false);
+  const [token, setToken]             = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [lastSince, setLastSince] = useState<string | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages]       = useState<Message[]>([]);
+  const [input, setInput]             = useState('');
+  const [loading, setLoading]         = useState(false);
+  const [unread, setUnread]           = useState(0);
+
+  // Refs stables pour éviter stale closures dans les intervalles
+  const openRef      = useRef(false);
+  const lastSinceRef = useRef<string | null>(null);
+  const convIdRef    = useRef<string | null>(null);
+  const bottomRef    = useRef<HTMLDivElement>(null);
+
   const isRtl = lang === 'ar';
   const t = L[lang];
 
-  // Lire token depuis localStorage côté client
+  // Sync refs
+  useEffect(() => { openRef.current = open; if (open) setUnread(0); }, [open]);
+  useEffect(() => { convIdRef.current = conversationId; }, [conversationId]);
+
   useEffect(() => {
-    const t = localStorage.getItem('boursa_token');
-    setToken(t);
+    setToken(localStorage.getItem('boursa_token'));
   }, []);
 
   function getHeaders(): Record<string, string> {
-    const t = localStorage.getItem('boursa_token');
+    const tk = localStorage.getItem('boursa_token');
     return {
       'Content-Type': 'application/json',
-      ...(t ? { Authorization: 'Bearer ' + t } : {}),
+      ...(tk ? { Authorization: 'Bearer ' + tk } : {}),
     };
+  }
+
+  async function loadMessages(convId: string, since: string | null) {
+    try {
+      const url = apiUrl + '/chat/conversations/' + convId + '/messages' + (since ? '?since=' + since : '');
+      const res  = await fetch(url, { headers: getHeaders() });
+      const data: Message[] = await res.json();
+      if (!Array.isArray(data) || data.length === 0) return;
+
+      setMessages(prev => {
+        const ids  = new Set(prev.map(m => m.id));
+        const news = data.filter(m => !ids.has(m.id));
+        if (news.length > 0) {
+          const fromAgency = news.filter(m => m.sender_type === 'agency').length;
+          if (fromAgency > 0 && !openRef.current) {
+            setUnread(u => u + fromAgency);
+            playNotif();
+          }
+        }
+        return [...prev, ...news];
+      });
+      lastSinceRef.current = data[data.length - 1].created_at;
+    } catch {}
   }
 
   async function openConversation() {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await fetch(apiUrl + '/chat/conversations/' + agencyId, { method: 'POST', headers: getHeaders() });
+      const res  = await fetch(apiUrl + '/chat/conversations/' + agencyId, { method: 'POST', headers: getHeaders() });
       const data = await res.json();
       setConversationId(data.id);
       await loadMessages(data.id, null);
     } catch {}
     setLoading(false);
-  }
-
-  async function loadMessages(convId: string, since: string | null) {
-    try {
-      const url = apiUrl + '/chat/conversations/' + convId + '/messages' + (since ? '?since=' + since : '');
-      const res = await fetch(url, { headers: getHeaders() });
-      const data: Message[] = await res.json();
-      if (data.length > 0) {
-        setMessages(prev => {
-          const ids = new Set(prev.map(m => m.id));
-          return [...prev, ...data.filter(m => !ids.has(m.id))];
-        });
-        setLastSince(data[data.length - 1].created_at);
-      }
-    } catch {}
   }
 
   async function sendMessage() {
@@ -93,14 +132,28 @@ export default function ChatWidget({ agencyId, agencyName, lang, apiUrl, loginUr
       method: 'POST', headers: getHeaders(),
       body: JSON.stringify({ body }),
     });
-    await loadMessages(conversationId, lastSince);
+    await loadMessages(conversationId, lastSinceRef.current);
   }
 
+  // Polling chat ouvert — stable via refs
   useEffect(() => {
-    if (!open || !conversationId) return;
-    const interval = setInterval(() => loadMessages(conversationId, lastSince), 5000);
-    return () => clearInterval(interval);
-  }, [open, conversationId, lastSince]);
+    if (!open) return;
+    const iv = setInterval(() => {
+      const cid = convIdRef.current;
+      if (cid) loadMessages(cid, lastSinceRef.current);
+    }, 5000);
+    return () => clearInterval(iv);
+  }, [open]);
+
+  // Polling badge chat fermé (10s) — pour notifier même sans ouvrir
+  useEffect(() => {
+    if (!token) return;
+    const iv = setInterval(() => {
+      const cid = convIdRef.current;
+      if (cid && !openRef.current) loadMessages(cid, lastSinceRef.current);
+    }, 10000);
+    return () => clearInterval(iv);
+  }, [token]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -172,9 +225,14 @@ export default function ChatWidget({ agencyId, agencyName, lang, apiUrl, loginUr
       <div style={{ display: 'flex', justifyContent: isRtl ? 'flex-start' : 'flex-end' }}>
         <button
           onClick={() => setOpen(o => !o)}
-          style={{ width: '56px', height: '56px', background: '#16A34A', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(22,163,74,0.4)' }}
+          style={{ width: '56px', height: '56px', background: '#16A34A', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(22,163,74,0.4)', position: 'relative' }}
         >
           <svg width="24" height="24" fill="none" stroke="white" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          {unread > 0 && (
+            <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#EF4444', color: 'white', borderRadius: '50%', width: '20px', height: '20px', fontSize: '11px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white' }}>
+              {unread > 9 ? '9+' : unread}
+            </span>
+          )}
         </button>
       </div>
     </div>
