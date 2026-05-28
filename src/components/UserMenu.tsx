@@ -6,8 +6,8 @@ interface Props {
 }
 
 const LABELS = {
-  fr: { login: 'Connexion', myAccount: 'Mon compte', myFavorites: 'Mes favoris', logout: 'Déconnexion' },
-  ar: { login: 'تسجيل الدخول', myAccount: 'حسابي', myFavorites: 'مفضلتي', logout: 'تسجيل الخروج' },
+  fr: { login: 'Connexion', myAccount: 'Mon compte', myFavorites: 'Mes favoris', myFollows: 'Mes suivis', myListings: 'Mes annonces', logout: 'Déconnexion' },
+  ar: { login: 'تسجيل الدخول', myAccount: 'حسابي', myFavorites: 'مفضلتي', myFollows: 'متابعاتي', myListings: 'إعلاناتي', logout: 'تسجيل الخروج' },
 };
 
 export default function UserMenu({ lang }: Props) {
@@ -64,7 +64,10 @@ export default function UserMenu({ lang }: Props) {
         }}
       >
         <div style={{ width: '30px', height: '30px', background: '#16A34A', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>
-          {initials}
+          {user.avatar_url
+            ? <img src={user.avatar_url} alt={initials} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+            : initials
+          }
         </div>
         <span style={{ fontSize: '13px', fontWeight: 700, maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {user.name?.split(' ')[0] || '?'}
@@ -93,9 +96,17 @@ export default function UserMenu({ lang }: Props) {
             <i className="fa-solid fa-user" style={{ fontSize: '11px', color: '#16A34A', width: '14px' }}></i>
             {l.myAccount}
           </a>
+          <a href={'/' + lang + '/mes-annonces'} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', fontSize: '13px', color: '#0F172A', textDecoration: 'none' }}>
+            <i className="fa-solid fa-car-side" style={{ fontSize: '11px', color: '#16A34A', width: '14px' }}></i>
+            {l.myListings}
+          </a>
           <a href={'/' + lang + '/favoris'} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', fontSize: '13px', color: '#0F172A', textDecoration: 'none' }}>
             <i className="fa-solid fa-heart" style={{ fontSize: '11px', color: '#16A34A', width: '14px' }}></i>
             {l.myFavorites}
+          </a>
+          <a href={'/' + lang + '/mes-suivis'} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', fontSize: '13px', color: '#0F172A', textDecoration: 'none' }}>
+            <i className="fa-solid fa-user-plus" style={{ fontSize: '11px', color: '#7C3AED', width: '14px' }}></i>
+            {l.myFollows}
           </a>
           <div style={{ borderTop: '1px solid #E2E8F0' }}>
             <button onClick={handleLogout} style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '10px', padding: '10px 16px', fontSize: '13px', color: '#DC2626', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>

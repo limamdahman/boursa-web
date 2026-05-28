@@ -1,0 +1,85 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+export const prerender = false;
+---
+<Layout title="Contact — Boursa">
+  <Header />
+  <section style="background: white; border-bottom: 1px solid #E2E8F0;">
+    <div style="max-width: 1400px; margin: 0 auto; padding: 32px 24px;" dir="ltr">
+      <h1 style="font-size: 28px; font-weight: 800; color: #0F172A; margin: 0 0 6px;">Contactez-nous</h1>
+      <p style="font-size: 14px; color: #475569; margin: 0;">Notre équipe vous répond sous 24h</p>
+    </div>
+  </section>
+  
+      <section style="background:white; padding:64px 24px;">
+        <div style="max-width:700px; margin:0 auto;">
+          <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:40px;">
+            <a href="https://wa.me/22240000000" target="_blank" style="display:flex; align-items:center; gap:14px; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:12px; padding:20px; text-decoration:none;">
+              <i class="fa-brands fa-whatsapp" style="font-size:28px; color:#16A34A;"></i>
+              <div><div style="font-weight:700; color:#0F172A; font-size:14px;">WhatsApp</div><div style="font-size:13px; color:#475569;">+222 40 00 00 00</div></div>
+            </a>
+            <a href="https://wa.me/22240000000?text=Bonjour+Boursa" style="display:flex; align-items:center; gap:14px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:20px; text-decoration:none;">
+              <i class="fa-solid fa-envelope" style="font-size:24px; color:#64748B;"></i>
+              <div><div style="font-weight:700; color:#0F172A; font-size:14px;">Email</div><div style="font-size:13px; color:#475569;">contact@boursa.mr</div></div>
+            </a>
+          </div>
+          <h3 style="font-size:18px; font-weight:800; color:#0F172A; margin:0 0 20px;">Envoyer un message</h3>
+          <div id="contact-form">
+            <div style="margin-bottom:16px;">
+              <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Nom complet *</label>
+              <input id="c-name" type="text" placeholder="Votre nom" style="width:100%; padding:10px 14px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; box-sizing:border-box;" />
+            </div>
+            <div style="margin-bottom:16px;">
+              <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Téléphone / Email *</label>
+              <input id="c-contact" type="text" placeholder="Ex: 22240000000 ou email@example.com" style="width:100%; padding:10px 14px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; box-sizing:border-box;" />
+            </div>
+            <div style="margin-bottom:16px;">
+              <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Sujet</label>
+              <select id="c-subject" style="width:100%; padding:10px 14px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; box-sizing:border-box; background:white;">
+                <option>Question générale</option>
+                <option>Problème avec une annonce</option>
+                <option>Devenir agence partenaire</option>
+                <option>Signaler un problème</option>
+                <option>Autre</option>
+              </select>
+            </div>
+            <div style="margin-bottom:24px;">
+              <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Message *</label>
+              <textarea id="c-message" rows="5" placeholder="Votre message..." style="width:100%; padding:10px 14px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; resize:none; box-sizing:border-box;"></textarea>
+            </div>
+            <button onclick="submitContact()" style="background:#16A34A; color:white; border:none; border-radius:10px; padding:14px 32px; font-size:15px; font-weight:700; cursor:pointer;">
+              Envoyer le message
+            </button>
+          </div>
+          <div id="contact-success" style="display:none; text-align:center; padding:40px 0;">
+            <i class="fa-solid fa-circle-check" style="font-size:48px; color:#16A34A; margin-bottom:16px;"></i>
+            <h4 style="font-size:18px; font-weight:800; color:#0F172A; margin:0 0 8px;">Message envoyé !</h4>
+            <p style="font-size:14px; color:#475569; margin:0;">Notre équipe vous répond sous 24h.</p>
+          </div>
+        </div>
+      </section>
+      <script>
+        async function submitContact() {
+          const name = document.getElementById("c-name").value.trim();
+          const contact = document.getElementById("c-contact").value.trim();
+          const subject = document.getElementById("c-subject").value;
+          const message = document.getElementById("c-message").value.trim();
+          if (!name || !contact || !message) { alert("Veuillez remplir tous les champs obligatoires."); return; }
+          const btn = document.querySelector("#contact-form button");
+          btn.disabled = true; btn.textContent = "Envoi...";
+          try {
+            await fetch(import.meta.env.PUBLIC_API_URL + "/contact", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name, contact, subject, message })
+            });
+          } catch {}
+          document.getElementById("contact-form").style.display = "none";
+          document.getElementById("contact-success").style.display = "block";
+        }
+        window.submitContact = submitContact;
+      </script>
+    
+  <Footer />
+</Layout>

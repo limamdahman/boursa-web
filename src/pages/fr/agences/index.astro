@@ -5,15 +5,11 @@ import Footer from '@/components/Footer.astro';
 import AgencyCard from '@/components/AgencyCard.astro';
 import { listAgencies } from '@/lib/api';
 import { getLang, useTranslations } from '@/i18n/translations';
-
 export const prerender = false;
-
 const lang = getLang(Astro.currentLocale);
 const t = useTranslations(lang);
-
 let agencies: any[] = [];
 let total = 0;
-
 try {
   const result = await listAgencies({ per_page: 24 });
   agencies = result?.data ?? [];
@@ -21,38 +17,36 @@ try {
 } catch (err) {
   console.error('Erreur chargement agences:', err);
 }
-
-const pageTitle = lang === 'ar' ? 'الوكالات' : 'Nos agences partenaires';
-const pageSubtitle = lang === 'ar' ? 'تصفح جميع الوكالات الموثوقة في موريتانيا' : 'Découvrez toutes les agences vérifiées de Boursa en Mauritanie';
 ---
-
-<Layout title={pageTitle}>
+<Layout title="Nos agences partenaires">
   <Header active="agences" />
 
+  <!-- Hero -->
   <section style="background: white; border-bottom: 1px solid #E2E8F0;">
     <div style="max-width: 1400px; margin: 0 auto; padding: 32px 24px;">
       <h1 style="font-size: 28px; font-weight: 800; color: #0F172A; margin: 0 0 6px;">
-        {pageTitle}
+        Nos agences partenaires
       </h1>
       <p style="font-size: 14px; color: #475569; margin: 0;">
-        {pageSubtitle}
+        Découvrez toutes les agences vérifiées de Boursa en Mauritanie
       </p>
       <div style="margin-top: 16px; display: inline-flex; align-items: center; gap: 8px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 100px; padding: 6px 14px;">
         <i class="fa-solid fa-building" style="font-size: 12px; color: #16A34A"></i>
         <span style="font-size: 13px; font-weight: 700; color: #15803D;">
-          <span dir="ltr">{total}</span> {lang === 'ar' ? 'وكالة' : 'agence' + (total > 1 ? 's' : '')}
+          <span dir="ltr">{total}</span> {total > 1 ? 'agences' : 'agence'}
         </span>
       </div>
     </div>
   </section>
 
-  <section style="padding: 32px 24px; background: #F8FAFC; min-height: 60vh;">
+  <!-- Grille agences -->
+  <section style="padding: 32px 24px; background: #F8FAFC; min-height: 40vh;">
     <div style="max-width: 1400px; margin: 0 auto;">
       {agencies.length === 0 ? (
         <div style="text-align: center; padding: 80px 20px; background: white; border-radius: 12px; border: 1px solid #E2E8F0;">
           <i class="fa-solid fa-building-circle-exclamation" style="font-size: 48px; color: #CBD5E1; margin-bottom: 16px"></i>
           <h2 style="font-size: 18px; font-weight: 800; color: #0F172A; margin: 0">
-            {lang === 'ar' ? 'لا توجد وكالات حاليا' : 'Aucune agence pour le moment'}
+            Aucune agence pour le moment
           </h2>
         </div>
       ) : (
@@ -62,6 +56,153 @@ const pageSubtitle = lang === 'ar' ? 'تصفح جميع الوكالات الم�
       )}
     </div>
   </section>
+
+  <!-- CTA Devenir agence -->
+  <section style="background: #0F172A; padding: 64px 24px;">
+    <div style="max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 40px; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 280px;">
+        <h2 style="font-size: 28px; font-weight: 800; color: white; margin: 0 0 12px;">
+          Vous êtes une agence ?
+        </h2>
+        <p style="font-size: 15px; color: #94A3B8; margin: 0 0 24px; line-height: 1.6;">
+          Diffusez votre stock auprès de 12 000+ acheteurs mensuels.<br/>
+          Outils pros, statistiques temps réel, leads qualifiés, Facebook Ads offerts (Business).
+        </p>
+        <div style="display: flex; gap: 32px; flex-wrap: wrap;">
+          <div>
+            <div style="font-size: 24px; font-weight: 800; color: #16A34A;">142</div>
+            <div style="font-size: 12px; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">Agences partenaires</div>
+          </div>
+          <div>
+            <div style="font-size: 24px; font-weight: 800; color: #16A34A;">2 470</div>
+            <div style="font-size: 12px; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">Annonces actives</div>
+          </div>
+          <div>
+            <div style="font-size: 24px; font-weight: 800; color: #16A34A;">12k+</div>
+            <div style="font-size: 12px; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">Visiteurs / mois</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <button
+          id="btn-open-modal"
+          style="background: #16A34A; color: white; border: none; border-radius: 10px; padding: 16px 32px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 10px; white-space: nowrap;"
+        >
+          Devenir agence partenaire
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section style="background: white; padding: 64px 24px;">
+    <div style="max-width: 800px; margin: 0 auto;">
+      <h2 style="font-size: 24px; font-weight: 800; color: #0F172A; text-align: center; margin: 0 0 8px;">
+        Questions fréquentes
+      </h2>
+      <p style="font-size: 14px; color: #475569; text-align: center; margin: 0 0 40px;">
+        Tout ce que vous devez savoir avant de rejoindre Boursa
+      </p>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            Comment devenir agence partenaire Boursa ?
+            <i class="fa-solid fa-chevron-down faq-icon"></i>
+          </button>
+          <div class="faq-a">
+            Cliquez sur "Devenir agence partenaire", remplissez le formulaire de demande. Notre équipe vous contacte sous 24h pour valider votre dossier et activer votre compte professionnel.
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            Quels sont les tarifs ?
+            <i class="fa-solid fa-chevron-down faq-icon"></i>
+          </button>
+          <div class="faq-a">
+            Boursa propose plusieurs formules adaptées à la taille de votre agence : Gratuit (jusqu'à 5 annonces), Pro (annonces illimitées + statistiques), Business (tout inclus + mise en avant). Contactez-nous pour un devis personnalisé.
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            Comment fonctionne la vérification d'agence ?
+            <i class="fa-solid fa-chevron-down faq-icon"></i>
+          </button>
+          <div class="faq-a">
+            Notre équipe vérifie manuellement chaque agence : existence légale (registre de commerce), localisation physique et identité du gérant. Une fois validée, votre agence affiche le badge "Vérifiée" visible par tous les acheteurs.
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            Combien de véhicules puis-je publier ?
+            <i class="fa-solid fa-chevron-down faq-icon"></i>
+          </button>
+          <div class="faq-a">
+            Le nombre d'annonces dépend de votre formule. La formule Gratuite est limitée à 5 véhicules actifs. Les formules Pro et Business sont illimitées. Vous pouvez mettre à jour votre formule à tout moment depuis votre tableau de bord.
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            Quels outils sont fournis aux agences ?
+            <i class="fa-solid fa-chevron-down faq-icon"></i>
+          </button>
+          <div class="faq-a">
+            Tableau de bord avec statistiques temps réel (vues, contacts, taux de conversion), gestion du stock véhicules, réception des leads (WhatsApp, appels, messages), et profil agence public avec page dédiée sur Boursa.
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            Comment les acheteurs me contactent-ils ?
+            <i class="fa-solid fa-chevron-down faq-icon"></i>
+          </button>
+          <div class="faq-a">
+            Les acheteurs peuvent vous contacter directement via WhatsApp, appel téléphonique ou message depuis chaque annonce. Tous les contacts sont centralisés dans votre tableau de bord pour un suivi facile.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modale demande agence -->
+  <div id="modal-agence" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:white; border-radius:16px; padding:32px; width:100%; max-width:500px; position:relative; max-height:90vh; overflow-y:auto;">
+      <button id="btn-close-modal" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:20px; cursor:pointer; color:#64748B;">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <h3 style="font-size: 20px; font-weight: 800; color: #0F172A; margin: 0 0 6px;">
+        Demande partenariat agence
+      </h3>
+      <p style="font-size: 13px; color: #64748B; margin: 0 0 24px;">
+        Notre équipe vous contacte sous 24h
+      </p>
+      <div id="form-agence">
+        <div style="margin-bottom: 16px;">
+          <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Nom de l'agence *</label>
+          <input id="ag-name" type="text" placeholder="Ex: Tevragh Auto" style="width:100%; padding:10px 14px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; box-sizing:border-box;" />
+        </div>
+        <div style="margin-bottom: 16px;">
+          <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Téléphone / WhatsApp *</label>
+          <input id="ag-phone" type="tel" placeholder="Ex: 22240000000" style="width:100%; padding:10px 14px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; box-sizing:border-box;" />
+        </div>
+        <div style="margin-bottom: 16px;">
+          <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Ville</label>
+          <input id="ag-city" type="text" placeholder="Ex: Nouakchott" style="width:100%; padding:10px 14px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; box-sizing:border-box;" />
+        </div>
+        <div style="margin-bottom: 24px;">
+          <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Message (optionnel)</label>
+          <textarea id="ag-message" rows="3" placeholder="Parlez-nous de votre agence..." style="width:100%; padding:10px 14px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; resize:none; box-sizing:border-box;"></textarea>
+        </div>
+        <button id="btn-submit-agence" style="width:100%; background:#16A34A; color:white; border:none; border-radius:10px; padding:14px; font-size:15px; font-weight:700; cursor:pointer;">
+          Envoyer ma demande
+        </button>
+      </div>
+      <div id="form-agence-success" style="display:none; text-align:center; padding:20px 0;">
+        <i class="fa-solid fa-circle-check" style="font-size:48px; color:#16A34A; margin-bottom:16px;"></i>
+        <h4 style="font-size:18px; font-weight:800; color:#0F172A; margin:0 0 8px;">Demande envoyée !</h4>
+        <p style="font-size:14px; color:#475569; margin:0;">Notre équipe vous contacte sous 24h sur le numéro indiqué.</p>
+      </div>
+    </div>
+  </div>
 
   <Footer />
 </Layout>
@@ -73,4 +214,76 @@ const pageSubtitle = lang === 'ar' ? 'تصفح جميع الوكالات الم�
   @media (max-width: 640px) {
     .agencies-grid { grid-template-columns: 1fr !important; }
   }
+  .faq-list { display: flex; flex-direction: column; gap: 8px; }
+  .faq-item { border: 1px solid #E2E8F0; border-radius: 10px; overflow: hidden; }
+  .faq-q {
+    width: 100%; background: white; border: none; padding: 18px 20px;
+    font-size: 15px; font-weight: 600; color: #0F172A; text-align: left;
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  }
+  .faq-q:hover { background: #F8FAFC; }
+  .faq-q.open { background: #F0FDF4; color: #15803D; }
+  .faq-q.open .faq-icon { transform: rotate(180deg); color: #16A34A; }
+  .faq-icon { transition: transform 0.2s; flex-shrink: 0; }
+  .faq-a { display: none; padding: 0 20px 18px; font-size: 14px; color: #475569; line-height: 1.7; }
+  .faq-a.open { display: block; }
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // FAQ accordion
+    document.querySelectorAll('.faq-q').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('.faq-item') as HTMLElement;
+        const answer = item.querySelector('.faq-a') as HTMLElement;
+        const isOpen = btn.classList.contains('open');
+        document.querySelectorAll('.faq-q').forEach(b => b.classList.remove('open'));
+        document.querySelectorAll('.faq-a').forEach(a => a.classList.remove('open'));
+        if (!isOpen) {
+          btn.classList.add('open');
+          answer.classList.add('open');
+        }
+      });
+    });
+
+    // Modal CTA
+    const modalBtn = document.getElementById('btn-open-modal');
+    if (modalBtn) {
+      modalBtn.addEventListener('click', () => {
+        (document.getElementById('modal-agence') as HTMLElement).style.display = 'flex';
+      });
+    }
+    const modalClose = document.getElementById('btn-close-modal');
+    if (modalClose) {
+      modalClose.addEventListener('click', () => {
+        (document.getElementById('modal-agence') as HTMLElement).style.display = 'none';
+      });
+    }
+
+    // Submit agence request
+    const submitBtn = document.getElementById('btn-submit-agence');
+    if (submitBtn) {
+      submitBtn.addEventListener('click', async () => {
+        const name = (document.getElementById('ag-name') as HTMLInputElement).value.trim();
+        const phone = (document.getElementById('ag-phone') as HTMLInputElement).value.trim();
+        const city = (document.getElementById('ag-city') as HTMLInputElement).value.trim();
+        const message = (document.getElementById('ag-message') as HTMLTextAreaElement).value.trim();
+        if (!name || !phone) {
+          alert("Veuillez remplir le nom de l'agence et le téléphone.");
+          return;
+        }
+        (submitBtn as HTMLButtonElement).disabled = true;
+        submitBtn.textContent = 'Envoi en cours...';
+        try {
+          await fetch(import.meta.env.PUBLIC_API_URL + '/agency-requests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, phone, city, message }),
+          });
+        } catch {}
+        (document.getElementById('form-agence') as HTMLElement).style.display = 'none';
+        (document.getElementById('form-agence-success') as HTMLElement).style.display = 'block';
+      });
+    }
+  });
+</script>

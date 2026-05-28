@@ -1,0 +1,33 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+export const prerender = false;
+---
+<Layout title="المجلة — بورصة">
+  <Header />
+  <section style="background: white; border-bottom: 1px solid #E2E8F0;" dir="rtl">
+    <div style="max-width: 1400px; margin: 0 auto; padding: 32px 24px;">
+      <h1 style="font-size: 28px; font-weight: 800; color: #0F172A; margin: 0 0 6px;">مجلة بورصة</h1>
+      <p style="font-size: 14px; color: #475569; margin: 0;">نصائح وأخبار وأدلة لشراء وبيع السيارات بشكل أفضل</p>
+    </div>
+  </section>
+  
+      <section style="background:white; padding:64px 24px;" dir="rtl">
+        <div style="max-width:900px; margin:0 auto; text-align:center;">
+          <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:16px; padding:60px 40px;">
+            <div style="font-size:48px; margin-bottom:16px;">📰</div>
+            <h2 style="font-size:22px; font-weight:800; color:#0F172A; margin:0 0 12px;">قريباً</h2>
+            <p style="font-size:15px; color:#475569; max-width:500px; margin:0 auto 28px; line-height:1.8;">فريقنا التحريري يعد أدلة شراء، نصائح بيع وأخبار سوق السيارات الموريتاني.</p>
+            <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+              <span style="background:#F0FDF4; color:#15803D; border:1px solid #BBF7D0; border-radius:100px; padding:6px 16px; font-size:13px; font-weight:600;">دليل الشراء</span>
+              <span style="background:#F0FDF4; color:#15803D; border:1px solid #BBF7D0; border-radius:100px; padding:6px 16px; font-size:13px; font-weight:600;">نصائح البيع</span>
+              <span style="background:#F0FDF4; color:#15803D; border:1px solid #BBF7D0; border-radius:100px; padding:6px 16px; font-size:13px; font-weight:600;">أخبار السيارات</span>
+              <span style="background:#F0FDF4; color:#15803D; border:1px solid #BBF7D0; border-radius:100px; padding:6px 16px; font-size:13px; font-weight:600;">مقارنات</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    
+  <Footer />
+</Layout>

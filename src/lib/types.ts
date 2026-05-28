@@ -46,6 +46,8 @@ export type Vehicle = {
   year: number;
   mileage_km: number;
   price_mru: number;
+  original_price?: number | null;
+  is_deal?: boolean;
   fuel: 'gasoline' | 'diesel' | 'hybrid' | 'electric' | 'gpl';
   transmission: 'manual' | 'automatic';
   body_type: string;

@@ -113,6 +113,7 @@ export default function ProfileForm({ lang }: Props) {
   const [favCount, setFavCount] = useState<number | null>(null);
   const [followCount, setFollowCount] = useState<number | null>(null);
   const [currentPassword, setCurrentPassword] = useState('');
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -195,6 +196,28 @@ export default function ProfileForm({ lang }: Props) {
   const memberSince = user.created_at ? new Date(user.created_at).toLocaleDateString(lang === 'ar' ? 'ar-MR' : 'fr-FR', { year: 'numeric', month: 'long' }) : '—';
   const initials = (user.name || '?').split(' ').slice(0, 2).map((s: string) => s[0] || '').join('').toUpperCase();
 
+  async function uploadAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const token = localStorage.getItem('boursa_token');
+    if (!token) return;
+    setAvatarUploading(true);
+    const form = new FormData();
+    form.append('avatar', file);
+    try {
+      const res = await fetch(import.meta.env.PUBLIC_API_URL + '/me/avatar', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token },
+        body: form,
+      });
+      const data = await res.json();
+      if (data.avatar_url) {
+        setUser((prev: any) => ({ ...prev, avatar_url: data.avatar_url }));
+      }
+    } catch {}
+    setAvatarUploading(false);
+  }
+
   const navCards = [
     {
       href: '/' + lang + '/mes-annonces',
@@ -242,8 +265,20 @@ export default function ProfileForm({ lang }: Props) {
     <div style={{ maxWidth: '880px', margin: '40px auto', padding: '0 20px' }}>
       {/* HERO */}
       <div style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', borderRadius: '16px', padding: '28px', marginBottom: '24px', color: 'white', display: 'flex', alignItems: 'center', gap: '18px' }}>
-        <div style={{ width: '64px', height: '64px', background: '#16A34A', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: 800, flexShrink: 0 }}>
-          {initials}
+        <div style={{ position: 'relative', width: '64px', height: '64px', flexShrink: 0 }}>
+          <div style={{ width: '64px', height: '64px', background: '#16A34A', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: 800, overflow: 'hidden' }}>
+            {user.avatar_url
+              ? <img src={user.avatar_url} alt={initials} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : initials
+            }
+          </div>
+          <label style={{ position: 'absolute', bottom: 0, right: 0, width: '22px', height: '22px', background: '#16A34A', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '2px solid #0F172A', zIndex: 10 }}>
+            <input type="file" accept="image/*" onChange={uploadAvatar} style={{ display: 'none' }} />
+            {avatarUploading
+              ? <span style={{ color: 'white', fontSize: '8px' }}>...</span>
+              : <i className="fa-solid fa-camera" style={{ color: 'white', fontSize: '9px' }}></i>
+            }
+          </label>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: '12px', color: '#94A3B8', fontFamily: 'JetBrains Mono, monospace', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>{l.welcomeBack}</div>

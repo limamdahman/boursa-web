@@ -54,7 +54,10 @@ const callUrl = phoneCall ? 'tel:' + phoneCall : null;
 
         <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
           <div style="width: 80px; height: 80px; background: #16A34A; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 28px; flex-shrink: 0;">
-            {initials}
+            {seller?.avatar_url
+              ? <img src={seller.avatar_url} alt={initials} style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
+              : initials
+            }
           </div>
           <div style="flex: 1; min-width: 0;">
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">

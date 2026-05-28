@@ -1,0 +1,75 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+export const prerender = false;
+---
+<Layout title="تقدير السعر — بورصة">
+  <Header />
+  <section style="background: white; border-bottom: 1px solid #E2E8F0;" dir="rtl">
+    <div style="max-width: 1400px; margin: 0 auto; padding: 32px 24px;">
+      <h1 style="font-size: 28px; font-weight: 800; color: #0F172A; margin: 0 0 6px;">قدّر سعر سيارتك</h1>
+      <p style="font-size: 14px; color: #475569; margin: 0;">احصل على تقدير بناءً على بيانات السوق الموريتاني</p>
+    </div>
+  </section>
+  
+      <section style="background:white; padding:64px 24px;" dir="rtl">
+        <div style="max-width:680px; margin:0 auto;">
+          <div style="background:#FEF9C3; border:1px solid #FDE047; border-radius:10px; padding:14px 18px; margin-bottom:32px; display:flex; gap:10px; align-items:flex-start;">
+            <i class="fa-solid fa-triangle-exclamation" style="color:#CA8A04; margin-top:2px; flex-shrink:0;"></i>
+            <p style="font-size:13px; color:#713F12; margin:0; line-height:1.7;"><strong>تقدير استرشادي فقط.</strong> قد تختلف الأسعار عن السوق الفعلي حسب حالة السيارة والمنطقة والطلب الآني وعوامل أخرى متغيرة. هذا التقدير لا يمثل عرض بيع أو شراء.</p>
+          </div>
+          <div id="estimator-form">
+            <div style="margin-bottom:16px;"><label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">الماركة *</label><select id="e-brand" style="width:100%; padding:10px 14px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; box-sizing:border-box; background:white;"><option value="">اختر الماركة</option><option>Toyota</option><option>Honda</option><option>Hyundai</option><option>Kia</option><option>Nissan</option><option>Peugeot</option><option>Renault</option><option>Mercedes-Benz</option><option>BMW</option><option>Ford</option><option>Volkswagen</option><option>Mitsubishi</option><option>Land Rover</option><option>BYD</option><option>أخرى</option></select></div>
+            <div style="margin-bottom:16px;"><label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">الموديل *</label><input id="e-model" type="text" placeholder="مثال: Corolla, CR-V, Creta..." style="width:100%; padding:10px 14px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; box-sizing:border-box;" /></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+              <div><label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">السنة *</label><select id="e-year" style="width:100%; padding:10px 14px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; box-sizing:border-box; background:white;"><option value="">السنة</option></select></div>
+              <div><label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">الكيلومتراج</label><select id="e-km" style="width:100%; padding:10px 14px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; box-sizing:border-box; background:white;"><option value="">الكيلومتراج</option><option value="0-50000">أقل من 50 000 كم</option><option value="50000-100000">50 000 — 100 000 كم</option><option value="100000-150000">100 000 — 150 000 كم</option><option value="150000-200000">150 000 — 200 000 كم</option><option value="200000+">أكثر من 200 000 كم</option></select></div>
+            </div>
+            <div style="margin-bottom:24px;"><label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">الحالة العامة</label><div style="display:flex; gap:8px; flex-wrap:wrap;" id="e-state"><button type="button" onclick="selectState(this,'excellent')" class="state-btn" style="padding:8px 18px; border:1px solid #D1D5DB; border-radius:100px; font-size:13px; font-weight:600; cursor:pointer; background:white; color:#374151;">ممتازة</button><button type="button" onclick="selectState(this,'bon')" class="state-btn" style="padding:8px 18px; border:1px solid #D1D5DB; border-radius:100px; font-size:13px; font-weight:600; cursor:pointer; background:white; color:#374151;">جيدة</button><button type="button" onclick="selectState(this,'correct')" class="state-btn" style="padding:8px 18px; border:1px solid #D1D5DB; border-radius:100px; font-size:13px; font-weight:600; cursor:pointer; background:white; color:#374151;">مقبولة</button><button type="button" onclick="selectState(this,'mauvais')" class="state-btn" style="padding:8px 18px; border:1px solid #D1D5DB; border-radius:100px; font-size:13px; font-weight:600; cursor:pointer; background:white; color:#374151;">تحتاج إصلاح</button></div></div>
+            <button onclick="estimatePrice()" style="width:100%; background:#16A34A; color:white; border:none; border-radius:10px; padding:14px; font-size:15px; font-weight:700; cursor:pointer;">تقدير السعر</button>
+          </div>
+          <div id="estimator-result" style="display:none; margin-top:32px; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:12px; padding:28px; text-align:center;">
+            <div style="font-size:13px; color:#475569; margin-bottom:8px;">تقدير استرشادي</div>
+            <div id="price-range" style="font-size:32px; font-weight:800; color:#15803D; margin-bottom:8px;" dir="ltr"></div>
+            <div style="font-size:13px; color:#64748B; margin-bottom:16px;">أوقية موريتانية · أسعار السوق الموريتاني</div>
+            <div style="background:#FEF9C3; border:1px solid #FDE047; border-radius:8px; padding:12px; font-size:12px; color:#713F12; line-height:1.7;">⚠️ سعر تقريبي بناءً على إعلانات مماثلة. قد يختلف حسب الحالة الفعلية والمنطقة وظروف السوق.</div>
+            <button onclick="document.getElementById('estimator-result').style.display='none'; document.getElementById('estimator-form').style.display='block';" style="margin-top:16px; background:white; border:1px solid #D1D5DB; border-radius:8px; padding:10px 20px; font-size:14px; font-weight:600; cursor:pointer; color:#374151;">تقدير جديد</button>
+          </div>
+        </div>
+      </section>
+      <script>
+        let selectedState = "bon";
+        const stateMultiplier = { excellent: 1.15, bon: 1.0, correct: 0.85, mauvais: 0.65 };
+        const basePrices = { Toyota:2500000,Honda:2200000,Hyundai:1800000,Kia:1700000,Nissan:1900000,Peugeot:2100000,Renault:1600000,"Mercedes-Benz":4500000,BMW:4200000,Ford:2000000,Volkswagen:2300000,Mitsubishi:2100000,"Land Rover":5500000,BYD:3500000,"أخرى":1800000 };
+        const sel = document.getElementById("e-year");
+        for (let y = 2025; y >= 2000; y--) { const o = document.createElement("option"); o.value = y; o.textContent = y; sel.appendChild(o); }
+        function selectState(btn, state) {
+          selectedState = state;
+          document.querySelectorAll(".state-btn").forEach(b => { b.style.background="white"; b.style.color="#374151"; b.style.borderColor="#D1D5DB"; });
+          btn.style.background="#16A34A"; btn.style.color="white"; btn.style.borderColor="#16A34A";
+        }
+        function estimatePrice() {
+          const brand = document.getElementById("e-brand").value;
+          const year = parseInt(document.getElementById("e-year").value);
+          const km = document.getElementById("e-km").value;
+          if (!brand || !year) { alert("يرجى اختيار الماركة والسنة."); return; }
+          let base = basePrices[brand] || 1800000;
+          const age = 2025 - year;
+          const ageFactor = Math.max(0.3, 1 - age * 0.06);
+          const kmFactor = km==="0-50000"?1.05:km==="50000-100000"?0.95:km==="100000-150000"?0.85:km==="150000-200000"?0.75:km==="200000+"?0.60:1;
+          const stateFactor = stateMultiplier[selectedState] || 1;
+          const estimated = Math.round(base * ageFactor * kmFactor * stateFactor);
+          const low = Math.round(estimated * 0.85);
+          const high = Math.round(estimated * 1.15);
+          const fmt = n => n.toLocaleString("fr-FR");
+          document.getElementById("price-range").textContent = fmt(low) + " — " + fmt(high);
+          document.getElementById("estimator-form").style.display = "none";
+          document.getElementById("estimator-result").style.display = "block";
+        }
+        window.selectState = selectState;
+        window.estimatePrice = estimatePrice;
+      </script>
+    
+  <Footer />
+</Layout>

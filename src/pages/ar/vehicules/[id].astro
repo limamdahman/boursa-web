@@ -15,6 +15,7 @@ import ReviewsSection from '@/components/ReviewsSection';
 import ShareButton from '@/components/ShareButton';
 import FollowButton from '@/components/FollowButton';
 import { getVehicle, formatPrice, formatKm } from '@/lib/api';
+import ChatWidget from '@/components/ChatWidget';
 import { getLang, useTranslations } from '@/i18n/translations';
 
 export const prerender = false;
@@ -32,6 +33,7 @@ try {
   return Astro.redirect(`/${lang}/vehicules`);
 }
 
+const isSoldVehicle = vehicle?.status === 'sold';
 const cityName = lang === 'ar' && vehicle.city?.name_ar ? vehicle.city.name_ar : vehicle.city?.name_fr;
 
 const facts: [string, any][] = [
@@ -46,6 +48,9 @@ if (cityName) facts.push([t('vehicle.city'), cityName]);
 
 <Layout title={`${vehicle.brand.name} ${vehicle.model.name} ${vehicle.year}`}>
   <Header active="vehicules" />
+  <script define:vars={{ vId: vehicle.id, vBrand: vehicle.brand.name, vModel: vehicle.model.name, vYear: vehicle.year, vPrice: vehicle.price, vImg: vehicle.media && vehicle.media.length > 0 ? vehicle.media[0].url_thumb : null }}>
+    try { var K="boursa_recent_vehicles"; var r=localStorage.getItem(K); var l=r?JSON.parse(r):[]; var f=l.filter(function(x){return x.id!==vId;}); localStorage.setItem(K,JSON.stringify([{id:vId,brand:vBrand,model:vModel,year:vYear,price:vPrice,image:vImg}].concat(f).slice(0,6))); } catch(e) {}
+  </script>
 
   {vehicle.agency?.banner_url && (
     <section style="position: relative; height: 200px; overflow: hidden; background: #0F172A;">
@@ -121,13 +126,27 @@ if (cityName) facts.push([t('vehicle.city'), cityName]);
 
           <div class="mb-6">
             <div class="flex items-baseline gap-2 ltr-numbers">
-              <span class="text-3xl font-extrabold text-[var(--color-price)] leading-none">
+              {(vehicle as any).is_deal && (
+                <span style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#EF4444,#DC2626);color:white;font-size:11px;font-weight:900;padding:4px 10px;border-radius:100px;letter-spacing:0.05em;margin-bottom:6px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2H4a2 2 0 0 0-2 2v5.5L12.5 20a2 2 0 0 0 2.83 0l5.17-5.17a2 2 0 0 0 0-2.83Z"/><circle cx="7" cy="7" r="1.5" fill="white" stroke="none"/></svg>DEAL</span>
+              )}
+              {(vehicle as any).original_price && (vehicle as any).original_price > vehicle.price_mru && (
+                <div style="font-size:14px;color:#94A3B8;text-decoration:line-through;margin-bottom:2px;">
+                  {formatPrice((vehicle as any).original_price)} {t('unit.currency')}
+                </div>
+              )}
+              <span class={"text-3xl font-extrabold leading-none " + ((vehicle as any).is_deal ? "text-red-600" : "text-[var(--color-price)]")}>
                 {formatPrice(vehicle.price_mru)}
               </span>
-              <span class="text-base font-bold text-[var(--color-price)]">{t('unit.currency')}</span>
+              <span class={"text-base font-bold " + ((vehicle as any).is_deal ? "text-red-600" : "text-[var(--color-price)]")}>{t('unit.currency')}</span>
             </div>
             <div class="mt-3 flex" dir="ltr" style="justify-content: flex-start;">
-              {vehicle.price_rating && (
+              {vehicle.price_negotiable && (
+              <span style="display:inline-flex;align-items:center;gap:4px;background:#F0FDF4;color:#16A34A;font-size:12px;font-weight:700;padding:4px 10px;border-radius:100px;margin-top:6px;">
+                <svg width="18" height="18" viewBox="0 0 146 146" xmlns="http://www.w3.org/2000/svg"><path d="M56.19,55.79l4-5a1.58,1.58,0,0,1,.9-0.57l13.5-2.82a8,8,0,0,1,5.9.07l16.67,7.17,6-1.78,1.27-.49,8.86,23.12-4.93,3-1.6,5.6L88.07,73.64l0.06-.3a14.38,14.38,0,0,1-5.4-2.3,15.12,15.12,0,0,1-6-9.6h-10a11.36,11.36,0,0,1-17.2,2.8Z" fill="currentColor"/><path d="M76.54,104.17l-0.13.25a6.6,6.6,0,0,1-.88,5.82l0,0.06a5.24,5.24,0,0,1-6.57,1.38c-2.07-1.06-2.86-1.43-5.92-3L65.28,106a4.61,4.61,0,0,0-.66-6.41l-0.1-.08-0.08-.07a4.6,4.6,0,0,0-6.42.39l-0.46.54-0.51-.43A5,5,0,0,0,56.33,93l-0.1-.09-0.09-.07a5,5,0,0,0-6.94.42L49,93.48l-0.69-.58a5.21,5.21,0,1,0-7.43-7.25l-0.31-.26,0.38-.45A4.26,4.26,0,0,0,40.33,79l-0.09-.07-0.07-.06a4.26,4.26,0,0,0-5.94.36l-0.5.58-0.6-.5-6.47-.86,8.5-26.5,5.42,1.71,15.61.54-6.66,10a11.36,11.36,0,0,0,17.2-2.8h10a15.12,15.12,0,0,0,6,9.6,14.38,14.38,0,0,0,5.4,2.3l-0.06.3L106.73,84.1a5.61,5.61,0,0,1-4.52,10.26l-2.77-1.44a6.78,6.78,0,0,1-.71,5.71l0,0.07a5.28,5.28,0,0,1-6.82,1.62L89,98.84l-0.22.43a7.74,7.74,0,0,1-1.23,6.17l0,0a4.85,4.85,0,0,1-6.06,1.23Z" fill="currentColor"/></svg>
+                {lang === 'ar' ? 'قابل للتفاوض' : 'Prix négociable'}
+              </span>
+            )}
+            {vehicle.price_rating && (
                 <PriceRatingBadge
                   client:load
                   rating={vehicle.price_rating}
@@ -146,16 +165,18 @@ if (cityName) facts.push([t('vehicle.city'), cityName]);
           {vehicle.agency && (
             <div class="border-t border-[var(--color-hairline)] pt-4 mb-4">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-[var(--color-text-1)] text-white rounded-lg flex items-center justify-center font-extrabold text-sm">
-                  {vehicle.agency.name.split(' ').slice(0, 2).map((s: string) => s[0]).join('').toUpperCase()}
+                <div class="w-10 h-10 bg-[var(--color-text-1)] text-white rounded-lg flex items-center justify-center font-extrabold text-sm overflow-hidden flex-shrink-0">
+                  {vehicle.agency.logo_url ? (<img src={vehicle.agency.logo_url} alt={vehicle.agency.name} class="w-full h-full object-cover" />) : vehicle.agency.name.split(' ').slice(0, 2).map((s: string) => s[0]).join('').toUpperCase()}
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-1.5">
                     <p class="text-sm font-bold text-[var(--color-text-1)] truncate">{vehicle.agency.name}</p>
-                    <span class="inline-flex items-center justify-center flex-shrink-0" title={t('vehicle.verified')} aria-label={t('vehicle.verified')}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="#16A34A" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"/>
-                      </svg>
+                    <span class="inline-flex items-center justify-center flex-shrink-0">
+                      {vehicle.agency.subscription_tier === 'business' ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" xmlns="http://www.w3.org/2000/svg"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"/></svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#16A34A" xmlns="http://www.w3.org/2000/svg"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"/></svg>
+                      )}
                     </span>
                   </div>
                   <p class="text-[11px] text-[var(--color-text-2)] mt-0.5">
@@ -168,7 +189,11 @@ if (cityName) facts.push([t('vehicle.city'), cityName]);
           )}
 
           <div class="space-y-2">
-            {(vehicle.agency?.phone_whatsapp || vehicle.user?.phone_whatsapp) && (
+            {isSoldVehicle ? (
+              <div style="background:#F1F5F9;border-radius:8px;padding:16px;text-align:center;color:#64748B;font-size:14px;font-weight:700;">
+                {lang === 'ar' ? '🚗 هذه السيارة تم بيعها' : '🚗 Ce véhicule a été vendu'}
+              </div>
+            ) : (vehicle.agency?.phone_whatsapp || vehicle.user?.phone_whatsapp) && (
                 <a
                 href={`https://wa.me/${(vehicle.agency?.phone_whatsapp || vehicle.user?.phone_whatsapp || '').replace(/\D/g, '')}?text=${encodeURIComponent(t('vehicle.whatsappMessage', { brand: vehicle.brand.name, model: vehicle.model.name, year: vehicle.year }))}`}
                 target="_blank"
@@ -179,7 +204,7 @@ if (cityName) facts.push([t('vehicle.city'), cityName]);
                 {t('vehicle.whatsapp')}
               </a>
             )}
-            {(vehicle.agency?.phone_call || vehicle.user?.phone_call) && (
+            {!isSoldVehicle && (vehicle.agency?.phone_call || vehicle.user?.phone_call) && (
                 <a
                 href={`tel:${vehicle.agency?.phone_call || vehicle.user?.phone_call}`}
                 class="w-full bg-[var(--color-brand-600)] hover:bg-[var(--color-brand-700)] text-white font-bold text-sm py-3 rounded-md flex items-center justify-center gap-2 transition-colors"
@@ -191,6 +216,7 @@ if (cityName) facts.push([t('vehicle.city'), cityName]);
           </div>
 
           <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #F1F5F9; display: grid; gap: 8px;">
+            )}
             <ShareButton
               client:load
               lang={lang}
@@ -204,4 +230,14 @@ if (cityName) facts.push([t('vehicle.city'), cityName]);
 
   <SimilarVehicles vehicleId={vehicle.id} />
   <Footer />
+  {vehicle.agency && ['pro', 'business'].includes(vehicle.agency.subscription_tier) && (
+    <ChatWidget
+      client:load
+      agencyId={vehicle.agency.id}
+      agencyName={vehicle.agency.name}
+      lang={lang}
+      apiUrl={import.meta.env.PUBLIC_API_URL}
+      loginUrl={'/' + lang + '/connexion'}
+    />
+  )}
 </Layout>

@@ -13,7 +13,14 @@ const t = useTranslations(lang);
 if (!agency) return null;
 
 const cityName = lang === 'ar' && agency.city?.name_ar ? agency.city.name_ar : agency.city?.name_fr;
-const tierLabel: Record<string, string> = { 'free': 'Gratuit', 'premium': 'Premium', 'business': 'Business' };
+const tier = agency.subscription_tier ?? 'free';
+const isBusiness = tier === 'business';
+const isPro = tier === 'pro';
+const badgeBg = isBusiness ? 'linear-gradient(135deg,#F59E0B,#D97706)' : '#16A34A';
+const badgeLabel = isBusiness ? 'GOLD ✦' : (lang === 'ar' ? 'موثقة ✓' : '✓ Vérifiée');
+const tierChipBg = isBusiness ? 'linear-gradient(135deg,#F59E0B,#D97706)' : isPro ? '#EFF6FF' : '#F1F5F9';
+const tierChipColor = isBusiness ? 'white' : isPro ? '#2563EB' : '#94A3B8';
+const tierChipLabel = isBusiness ? 'BUSINESS' : isPro ? 'PRO' : (lang === 'ar' ? 'مجاني' : 'GRATUIT');
 
 const mapSrc = agency.lat && agency.lng
   ? `https://maps.google.com/maps?q=${agency.lat},${agency.lng}&z=15&hl=${lang}&output=embed`
@@ -39,16 +46,15 @@ const mapLink = agency.lat && agency.lng
     <div style="flex: 1; min-width: 0;">
       <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
         <h3 style="font-size: 16px; font-weight: 800; color: #0F172A; margin: 0;">{agency.name}</h3>
-        {agency.is_verified && (
-          <span style="display: inline-flex; align-items: center; gap: 3px; background: #16A34A; color: white; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 100px;">
-            <i class="fa-solid fa-check" style="font-size: 8px"></i>
-            {t('agency.verified') || 'Vérifiée'}
-          </span>
-        )}
+        {isBusiness ? (
+          <Fragment set:html='<svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B" xmlns="http://www.w3.org/2000/svg"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"/></svg>' />
+        ) : (isPro || agency.is_verified) ? (
+          <Fragment set:html='<svg width="16" height="16" viewBox="0 0 24 24" fill="#16A34A" xmlns="http://www.w3.org/2000/svg"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"/></svg>' />
+        ) : null}
       </div>
       <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #64748B;">
         <span style="font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em;">
-          {tierLabel[agency.subscription_tier] || agency.subscription_tier}
+          <span style={"display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:" + tierChipBg + ";color:" + tierChipColor}>{tierChipLabel}</span>
         </span>
         <span>•</span>
         <span>{agency.vehicles_count} {t('agency.activeListings') || 'annonces actives'}</span>

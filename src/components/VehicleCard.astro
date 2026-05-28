@@ -17,10 +17,14 @@ const photoCount = vehicle.media?.length ?? 0;
 const cityName = lang === 'ar' && vehicle.city?.name_ar ? vehicle.city.name_ar : vehicle.city?.name_fr;
 const fuelLabel = t(`fuel.${vehicle.fuel}`);
 const detailUrl = '/' + lang + '/vehicules/' + vehicle.id;
+const isSold = vehicle.status === 'sold';
+const isDeal = (vehicle as any).is_deal === true;
+const originalPrice = (vehicle as any).original_price;
+const hasDiscount = originalPrice && originalPrice > vehicle.price_mru;
 const altText = vehicle.brand.name + ' ' + vehicle.model.name;
 ---
 
-<div class="group relative block bg-white rounded-xl overflow-hidden transition-all hover:shadow-lg cursor-pointer" class:list={[featured ? 'border-2 border-[var(--color-brand-600)] shadow-md' : 'border border-[var(--color-hairline)] hover:border-[var(--color-brand-300)]']} data-href={detailUrl} onclick="if(!event.target.closest('[data-no-nav]')) { window.location.href=this.dataset.href; }">
+<div class={"group relative block rounded-xl overflow-hidden transition-all hover:shadow-lg cursor-pointer " + (isSold ? "bg-gray-50 opacity-75" : "bg-white")} class:list={[featured ? 'border-2 border-[var(--color-brand-600)] shadow-md' : 'border border-[var(--color-hairline)] hover:border-[var(--color-brand-300)]']} data-href={detailUrl} onclick="if(!event.target.closest('[data-no-nav]')) { window.location.href=this.dataset.href; }">
   <div data-no-nav="true" style="position: absolute; top: 10px; inset-inline-end: 10px; z-index: 10;">
     <FavoriteHeart client:load vehicleId={vehicle.id} lang={lang} />
   </div>
@@ -34,9 +38,22 @@ const altText = vehicle.brand.name + ' ' + vehicle.model.name;
         <span class="text-xs">{t('vehicle.noPhoto')}</span>
       </div>
     )}
-    {featured && (
+    {featured && !isSold && (
       <span class="absolute top-2 start-2 bg-[var(--color-brand-600)] text-white text-[10px] font-extrabold px-2 py-1 rounded tracking-wider">
         {t('featured.vedette')}
+      </span>
+    )}
+    {isSold && (
+      <div class="absolute inset-0 bg-black/60 flex items-center justify-center">
+        <span style="background:white;color:#0F172A;font-size:13px;font-weight:900;padding:8px 20px;border-radius:100px;letter-spacing:0.05em;text-transform:uppercase;">
+          {lang === 'ar' ? 'تم البيع' : 'VENDU'}
+        </span>
+      </div>
+    )}
+    {isDeal && !isSold && (
+      <span class="absolute top-2 start-2" style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#EF4444,#DC2626);color:white;font-size:10px;font-weight:900;padding:4px 10px;border-radius:100px;letter-spacing:0.05em;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2H4a2 2 0 0 0-2 2v5.5L12.5 20a2 2 0 0 0 2.83 0l5.17-5.17a2 2 0 0 0 0-2.83Z"/><circle cx="7" cy="7" r="1.5" fill="white" stroke="none"/></svg>
+        DEAL
       </span>
     )}
     {photoCount > 0 && (
@@ -53,10 +70,23 @@ const altText = vehicle.brand.name + ' ' + vehicle.model.name;
     <p class="text-[11px] text-[var(--color-text-2)] mt-0.5 mb-2 ltr-numbers">
       {vehicle.year} · {formatKm(vehicle.mileage_km)} {t('unit.km')} · {fuelLabel}
     </p>
-    <p class="text-base font-extrabold text-[var(--color-price)] leading-none ltr-numbers">
-      {formatPrice(vehicle.price_mru)}
-      <span class="text-[11px] font-bold">{t('unit.currency')}</span>
-    </p>
+    <div class="leading-none ltr-numbers">
+      {hasDiscount && (
+        <span class="text-[11px] text-[var(--color-text-3)] line-through mr-1">
+          {formatPrice(originalPrice)} {t('unit.currency')}
+        </span>
+      )}
+      <p class={"text-base font-extrabold leading-none " + (isSold ? "text-gray-400" : hasDiscount ? "text-red-600" : "text-[var(--color-price)]")}>
+        {formatPrice(vehicle.price_mru)}
+        <span class="text-[11px] font-bold">{t('unit.currency')}</span>
+      </p>
+      {vehicle.price_negotiable && !isSold && (
+        <span style="display:inline-flex;align-items:center;gap:3px;background:#F0FDF4;color:#16A34A;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;margin-top:4px;">
+          <svg width="16" height="16" viewBox="0 0 146 146" xmlns="http://www.w3.org/2000/svg"><path d="M56.19,55.79l4-5a1.58,1.58,0,0,1,.9-0.57l13.5-2.82a8,8,0,0,1,5.9.07l16.67,7.17,6-1.78,1.27-.49,8.86,23.12-4.93,3-1.6,5.6L88.07,73.64l0.06-.3a14.38,14.38,0,0,1-5.4-2.3,15.12,15.12,0,0,1-6-9.6h-10a11.36,11.36,0,0,1-17.2,2.8Z" fill="currentColor"/><path d="M76.54,104.17l-0.13.25a6.6,6.6,0,0,1-.88,5.82l0,0.06a5.24,5.24,0,0,1-6.57,1.38c-2.07-1.06-2.86-1.43-5.92-3L65.28,106a4.61,4.61,0,0,0-.66-6.41l-0.1-.08-0.08-.07a4.6,4.6,0,0,0-6.42.39l-0.46.54-0.51-.43A5,5,0,0,0,56.33,93l-0.1-.09-0.09-.07a5,5,0,0,0-6.94.42L49,93.48l-0.69-.58a5.21,5.21,0,1,0-7.43-7.25l-0.31-.26,0.38-.45A4.26,4.26,0,0,0,40.33,79l-0.09-.07-0.07-.06a4.26,4.26,0,0,0-5.94.36l-0.5.58-0.6-.5-6.47-.86,8.5-26.5,5.42,1.71,15.61.54-6.66,10a11.36,11.36,0,0,0,17.2-2.8h10a15.12,15.12,0,0,0,6,9.6,14.38,14.38,0,0,0,5.4,2.3l-0.06.3L106.73,84.1a5.61,5.61,0,0,1-4.52,10.26l-2.77-1.44a6.78,6.78,0,0,1-.71,5.71l0,0.07a5.28,5.28,0,0,1-6.82,1.62L89,98.84l-0.22.43a7.74,7.74,0,0,1-1.23,6.17l0,0a4.85,4.85,0,0,1-6.06,1.23Z" fill="currentColor"/></svg>
+          {lang === 'ar' ? 'قابل للتفاوض' : 'Négociable'}
+        </span>
+      )}
+    </div>
     <div class="mt-2 flex items-center justify-between">
       {cityName && (
         <span class="text-[10px] text-[var(--color-text-3)] flex items-center gap-1">

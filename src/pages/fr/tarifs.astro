@@ -1,0 +1,71 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+export const prerender = false;
+---
+<Layout title="Tarifs — Boursa">
+  <Header />
+  <section style="background: white; border-bottom: 1px solid #E2E8F0;">
+    <div style="max-width: 1400px; margin: 0 auto; padding: 32px 24px;" dir="ltr">
+      <h1 style="font-size: 28px; font-weight: 800; color: #0F172A; margin: 0 0 6px;">Tarifs agences</h1>
+      <p style="font-size: 14px; color: #475569; margin: 0;">Choisissez la formule adaptée à votre activité</p>
+    </div>
+  </section>
+  
+      <section style="background:white; padding:64px 24px;">
+        <div style="max-width:1000px; margin:0 auto;">
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px;" class="pricing-grid">
+            <div style="border:1px solid #E2E8F0; border-radius:16px; padding:28px; background:white;">
+              <div style="font-size:13px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Gratuit</div>
+              <div style="font-size:36px; font-weight:800; color:#0F172A; margin-bottom:4px;">0 <span style="font-size:14px; font-weight:500; color:#64748B;">MRU/mois</span></div>
+              <p style="font-size:13px; color:#64748B; margin:0 0 20px; line-height:1.5;">Pour démarrer et tester la plateforme</p>
+              <div style="border-top:1px solid #E2E8F0; padding-top:20px; display:flex; flex-direction:column; gap:12px; margin-bottom:28px;">
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#374151;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Jusqu'à 10 annonces</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#374151;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Page agence publique</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#374151;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Contacts WhatsApp</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#94A3B8;"><i class="fa-solid fa-xmark" style="color:#CBD5E1; flex-shrink:0;"></i> Statistiques avancées</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#94A3B8;"><i class="fa-solid fa-xmark" style="color:#CBD5E1; flex-shrink:0;"></i> Mise en avant</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#94A3B8;"><i class="fa-solid fa-xmark" style="color:#CBD5E1; flex-shrink:0;"></i> Chat prospects</div>
+              </div>
+              <a href="/fr/agences" style="display:block; text-align:center; background:#F1F5F9; color:#374151; border-radius:8px; padding:12px; font-weight:700; text-decoration:none; font-size:14px;">Commencer gratuitement</a>
+            </div>
+            <div style="border:2px solid #16A34A; border-radius:16px; padding:28px; background:white; position:relative;">
+              <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:#16A34A; color:white; padding:4px 16px; border-radius:100px; font-size:12px; font-weight:700; white-space:nowrap;">Le plus populaire</div>
+              <div style="font-size:13px; font-weight:700; color:#15803D; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Pro</div>
+              <div style="font-size:36px; font-weight:800; color:#0F172A; margin-bottom:4px;">Sur devis <span style="font-size:14px; font-weight:500; color:#64748B;"></span></div>
+              <p style="font-size:13px; color:#64748B; margin:0 0 20px; line-height:1.5;">Pour les agences actives qui veulent croître</p>
+              <div style="border-top:1px solid #E2E8F0; padding-top:20px; display:flex; flex-direction:column; gap:12px; margin-bottom:28px;">
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#374151;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Annonces illimitées</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#374151;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Page agence premium</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#374151;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Contacts WhatsApp + appels</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#374151;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Statistiques avancées</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#94A3B8;"><i class="fa-solid fa-xmark" style="color:#CBD5E1; flex-shrink:0;"></i> Mise en avant prioritaire</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#374151;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Chat prospects</div>
+              </div>
+              <a href="https://wa.me/22240000000?text=Bonjour+Boursa,+je+souhaite+passer+au+plan+Pro" target="_blank" style="display:block; text-align:center; background:#16A34A; color:white; border-radius:8px; padding:12px; font-weight:700; text-decoration:none; font-size:14px;">Demander un devis</a>
+            </div>
+            <div style="border:1px solid #E2E8F0; border-radius:16px; padding:28px; background:#0F172A;">
+              <div style="font-size:13px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Business</div>
+              <div style="font-size:36px; font-weight:800; color:white; margin-bottom:4px;">Sur devis <span style="font-size:14px; font-weight:500; color:#64748B;"></span></div>
+              <p style="font-size:13px; color:#64748B; margin:0 0 20px; line-height:1.5;">Pour les grands groupes et concessionnaires</p>
+              <div style="border-top:1px solid #1E293B; padding-top:20px; display:flex; flex-direction:column; gap:12px; margin-bottom:28px;">
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#E2E8F0;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Tout le plan Pro</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#E2E8F0;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Mise en avant prioritaire</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#E2E8F0;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Badge "Partenaire officiel"</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#E2E8F0;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Account manager dédié</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#E2E8F0;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Intégration API stock</div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#E2E8F0;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Rapports mensuels</div>
+              <div style="display:flex; gap:10px; align-items:center; font-size:14px; color:#E2E8F0;"><i class="fa-solid fa-check" style="color:#16A34A; flex-shrink:0;"></i> Facebook Ads offerts 🎁</div>
+              </div>
+              <a href="https://wa.me/22240000000?text=Bonjour+Boursa,+je+souhaite+passer+au+plan+Pro" target="_blank" style="display:block; text-align:center; background:#16A34A; color:white; border-radius:8px; padding:12px; font-weight:700; text-decoration:none; font-size:14px;">Nous contacter</a>
+            </div>
+          </div>
+        </div>
+      </section>
+      <style>
+        @media (max-width: 768px) { .pricing-grid { grid-template-columns: 1fr !important; } }
+      </style>
+    
+  <Footer />
+</Layout>

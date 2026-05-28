@@ -1,0 +1,38 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+export const prerender = false;
+---
+<Layout title="من نحن — بورصة">
+  <Header />
+  <section style="background: white; border-bottom: 1px solid #E2E8F0;" dir="rtl">
+    <div style="max-width: 1400px; margin: 0 auto; padding: 32px 24px;">
+      <h1 style="font-size: 28px; font-weight: 800; color: #0F172A; margin: 0 0 6px;">من نحن</h1>
+      <p style="font-size: 14px; color: #475569; margin: 0;">منصة السيارات الأولى في موريتانيا</p>
+    </div>
+  </section>
+  
+      <section style="background:white; padding:64px 24px;" dir="rtl">
+        <div style="max-width:800px; margin:0 auto;">
+          <h2 style="font-size:22px; font-weight:800; color:#0F172A; margin:0 0 16px;">مهمتنا</h2>
+          <p style="font-size:15px; color:#475569; line-height:1.9; margin:0 0 32px;">بورصة هي أول منصة متخصصة في بيع وشراء السيارات في موريتانيا. مهمتنا: جعل سوق السيارات الموريتاني شفافاً وسهل الوصول وآمناً للجميع.</p>
+          <h2 style="font-size:22px; font-weight:800; color:#0F172A; margin:0 0 16px;">قصتنا</h2>
+          <p style="font-size:15px; color:#475569; line-height:1.9; margin:0 0 32px;">تأسست بورصة في نواكشوط من ملاحظة بسيطة: يفتقر سوق السيارات المستعملة في موريتانيا إلى الشفافية والثقة. بنينا منصة تربط المشترين والبائعين مباشرة، مع إعلانات موثقة ووكالات معتمدة.</p>
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin:40px 0;">
+            <div style="background:#F0FDF4; border-radius:12px; padding:24px; text-align:center;"><div style="font-size:32px; font-weight:800; color:#16A34A;" dir="ltr">12k+</div><div style="font-size:13px; color:#475569; margin-top:4px;">زيارة / شهر</div></div>
+            <div style="background:#F0FDF4; border-radius:12px; padding:24px; text-align:center;"><div style="font-size:32px; font-weight:800; color:#16A34A;" dir="ltr">2 470</div><div style="font-size:13px; color:#475569; margin-top:4px;">إعلان نشط</div></div>
+            <div style="background:#F0FDF4; border-radius:12px; padding:24px; text-align:center;"><div style="font-size:32px; font-weight:800; color:#16A34A;" dir="ltr">142</div><div style="font-size:13px; color:#475569; margin-top:4px;">وكالة شريكة</div></div>
+          </div>
+          <h2 style="font-size:22px; font-weight:800; color:#0F172A; margin:0 0 16px;">قيمنا</h2>
+          <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;">
+            <div style="border:1px solid #E2E8F0; border-radius:10px; padding:20px;"><div style="font-weight:700; color:#0F172A; margin-bottom:6px;">🔒 الثقة</div><p style="font-size:14px; color:#475569; margin:0; line-height:1.7;">كل وكالة موثقة يدوياً. كل إعلان مفحوص.</p></div>
+            <div style="border:1px solid #E2E8F0; border-radius:10px; padding:20px;"><div style="font-weight:700; color:#0F172A; margin-bottom:6px;">💡 الشفافية</div><p style="font-size:14px; color:#475569; margin:0; line-height:1.7;">أسعار واضحة، تاريخ ظاهر، لا رسوم مخفية.</p></div>
+            <div style="border:1px solid #E2E8F0; border-radius:10px; padding:20px;"><div style="font-weight:700; color:#0F172A; margin-bottom:6px;">🇲🇷 100% موريتانيا</div><p style="font-size:14px; color:#475569; margin:0; line-height:1.7;">مصمم للسوق الموريتاني، بالفرنسية والعربية.</p></div>
+            <div style="border:1px solid #E2E8F0; border-radius:10px; padding:20px;"><div style="font-weight:700; color:#0F172A; margin-bottom:6px;">⚡ السرعة</div><p style="font-size:14px; color:#475569; margin:0; line-height:1.7;">انشر في 5 دقائق. بع في 24 ساعة.</p></div>
+          </div>
+        </div>
+      </section>
+    
+  <Footer />
+</Layout>
